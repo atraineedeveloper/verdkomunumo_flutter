@@ -1,0 +1,15 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Verdkomunumo Flutter",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "toolArgs": [
+        "--dart-define=SUPABASE_URL=https://zywsptwroqqmlrunreqy.supabase.co",
+        "--dart-define=SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp5d3NwdHdyb3FxbWxydW5yZXF5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3MTEwMDYsImV4cCI6MjA5MDI4NzAwNn0.-8NKvoIS-n6i9m5zgRiJOzfiduuRGX8Ym3alQ64Hkks"
+      ]
+    }
+  ]
+}
