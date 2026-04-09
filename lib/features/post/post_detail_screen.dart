@@ -1,33 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../app/routing/app_routes.dart';
 import '../../core/responsive.dart';
 import '../../models/comment.dart';
 import '../../models/post.dart';
 import '../../widgets/user_avatar.dart';
+import '../post/data/supabase_post_detail_repository.dart';
+import 'application/post_detail_providers.dart';
 
-class PostDetailScreen extends StatefulWidget {
+class PostDetailScreen extends ConsumerStatefulWidget {
   final String postId;
+
   const PostDetailScreen({super.key, required this.postId});
 
   @override
-  State<PostDetailScreen> createState() => _PostDetailScreenState();
+  ConsumerState<PostDetailScreen> createState() => _PostDetailScreenState();
 }
 
-class _PostDetailScreenState extends State<PostDetailScreen> {
-  Post? _post;
-  List<Comment> _comments = [];
-  bool _loading = true;
+class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   final _commentController = TextEditingController();
-  bool _submitting = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
 
   @override
   void dispose() {
@@ -35,76 +29,37 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     super.dispose();
   }
 
-  Future<void> _load() async {
-    try {
-      final postData = await Supabase.instance.client
-          .from('posts')
-          .select('*, author:profiles!user_id(*), category:categories!category_id(name)')
-          .eq('id', widget.postId)
-          .single();
-
-      final commentsData = await Supabase.instance.client
-          .from('comments')
-          .select('*, author:profiles!user_id(*)')
-          .eq('post_id', widget.postId)
-          .order('created_at', ascending: true);
-
-      setState(() {
-        _post = Post.fromJson(postData);
-        _comments = commentsData.map((j) => Comment.fromJson(j)).toList();
-        _loading = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Eraro: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
   Future<void> _submitComment() async {
-    final content = _commentController.text.trim();
-    if (content.isEmpty) return;
-
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
-      context.push('/ensaluti');
-      return;
-    }
-
-    setState(() => _submitting = true);
     try {
-      await Supabase.instance.client.from('comments').insert({
-        'post_id': widget.postId,
-        'user_id': userId,
-        'content': content,
-      });
+      await ref
+          .read(postDetailControllerProvider(widget.postId).notifier)
+          .submitComment(_commentController.text);
       _commentController.clear();
-      await _load();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Eraro: $e'), backgroundColor: Colors.red),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _submitting = false);
+    } on PostCommentFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(postDetailControllerProvider(widget.postId));
     final colorScheme = Theme.of(context).colorScheme;
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Afiŝo')),
-      body: _loading
+      appBar: AppBar(title: const Text('Afisxo')),
+      body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _post == null
-              ? const Center(child: Text('Afiŝo ne trovita'))
+          : state.post == null
+              ? Center(
+                  child: Text(state.errorMessage ?? 'Afisxo ne trovita'),
+                )
               : Column(
                   children: [
                     Expanded(
@@ -121,17 +76,18 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               16,
                             ),
                             children: [
-                              _PostBody(post: _post!),
+                              _PostBody(post: state.post!),
                               const Divider(height: 32),
                               Text(
-                                '${_comments.length} komentoj',
+                                '${state.comments.length} komentoj',
                                 style: TextStyle(
                                   color: colorScheme.onSurface.withAlpha(150),
                                   fontSize: 13,
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              ..._comments.map((c) => _CommentTile(comment: c)),
+                              ...state.comments
+                                  .map((comment) => _CommentTile(comment: comment)),
                             ],
                           ),
                         ),
@@ -149,7 +105,8 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                               left: horizontalPadding,
                               right: horizontalPadding,
                               top: 12,
-                              bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+                              bottom:
+                                  MediaQuery.of(context).viewInsets.bottom + 12,
                             ),
                             decoration: BoxDecoration(
                               color: colorScheme.surface,
@@ -166,9 +123,10 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                   child: TextField(
                                     controller: _commentController,
                                     decoration: InputDecoration(
-                                      hintText: 'Skribu komenton…',
+                                      hintText: 'Skribu komenton...',
                                       isDense: true,
-                                      contentPadding: const EdgeInsets.symmetric(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
                                         horizontal: 16,
                                         vertical: 10,
                                       ),
@@ -183,8 +141,9 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
                                 ),
                                 const SizedBox(width: 8),
                                 IconButton.filled(
-                                  onPressed: _submitting ? null : _submitComment,
-                                  icon: _submitting
+                                  onPressed:
+                                      state.isSubmitting ? null : _submitComment,
+                                  icon: state.isSubmitting
                                       ? const SizedBox(
                                           width: 18,
                                           height: 18,
@@ -213,6 +172,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
 class _PostBody extends StatelessWidget {
   final Post post;
+
   const _PostBody({required this.post});
 
   @override
@@ -228,7 +188,7 @@ class _PostBody extends StatelessWidget {
             GestureDetector(
               onTap: () {
                 if (author != null) {
-                  context.push('/profilo/${author.username}');
+                  context.push('${AppRoutes.profilePrefix}/${author.username}');
                 }
               },
               child: UserAvatar(
@@ -272,14 +232,22 @@ class _PostBody extends StatelessWidget {
         const SizedBox(height: 12),
         Row(
           children: [
-            Icon(Icons.favorite_border, size: 18, color: colorScheme.onSurface.withAlpha(120)),
+            Icon(
+              Icons.favorite_border,
+              size: 18,
+              color: colorScheme.onSurface.withAlpha(120),
+            ),
             const SizedBox(width: 4),
             Text(
               '${post.likesCount}',
               style: TextStyle(color: colorScheme.onSurface.withAlpha(120)),
             ),
             const SizedBox(width: 16),
-            Icon(Icons.chat_bubble_outline, size: 18, color: colorScheme.onSurface.withAlpha(120)),
+            Icon(
+              Icons.chat_bubble_outline,
+              size: 18,
+              color: colorScheme.onSurface.withAlpha(120),
+            ),
             const SizedBox(width: 4),
             Text(
               '${post.commentsCount}',
@@ -294,6 +262,7 @@ class _PostBody extends StatelessWidget {
 
 class _CommentTile extends StatelessWidget {
   final Comment comment;
+
   const _CommentTile({required this.comment});
 
   @override
@@ -309,7 +278,7 @@ class _CommentTile extends StatelessWidget {
           GestureDetector(
             onTap: () {
               if (author != null) {
-                context.push('/profilo/${author.username}');
+                context.push('${AppRoutes.profilePrefix}/${author.username}');
               }
             },
             child: UserAvatar(
@@ -327,7 +296,10 @@ class _CommentTile extends StatelessWidget {
                   children: [
                     Text(
                       author?.name ?? 'Anonima',
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -340,7 +312,10 @@ class _CommentTile extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 4),
-                Text(comment.content, style: const TextStyle(fontSize: 14, height: 1.4)),
+                Text(
+                  comment.content,
+                  style: const TextStyle(fontSize: 14, height: 1.4),
+                ),
               ],
             ),
           ),

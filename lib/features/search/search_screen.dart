@@ -1,35 +1,30 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../app/routing/app_routes.dart';
 import '../../core/responsive.dart';
-import '../../models/post.dart';
 import '../../models/profile.dart';
 import '../../widgets/user_avatar.dart';
 import '../feed/widgets/post_card.dart';
+import 'application/search_providers.dart';
 
 enum _SearchTab { posts, users }
 
-class SearchScreen extends StatefulWidget {
+class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
 
   @override
-  State<SearchScreen> createState() => _SearchScreenState();
+  ConsumerState<SearchScreen> createState() => _SearchScreenState();
 }
 
-class _SearchScreenState extends State<SearchScreen>
+class _SearchScreenState extends ConsumerState<SearchScreen>
     with SingleTickerProviderStateMixin {
   final _searchController = TextEditingController();
   late TabController _tabController;
-
-  List<Post> _posts = [];
-  List<Profile> _users = [];
-  bool _loading = false;
-  String _query = '';
   Timer? _searchDebounce;
-  int _searchRequestId = 0;
 
   @override
   void initState() {
@@ -49,78 +44,24 @@ class _SearchScreenState extends State<SearchScreen>
     _searchDebounce?.cancel();
 
     if (value.isEmpty) {
-      _search(value);
+      ref.read(searchControllerProvider.notifier).clear();
       return;
     }
 
     if (value.trim().length < 2) {
-      setState(() {
-        _query = value.trim();
-        _loading = false;
-        _posts = [];
-        _users = [];
-      });
+      ref.read(searchControllerProvider.notifier).search(value);
       return;
     }
 
     _searchDebounce = Timer(
       const Duration(milliseconds: 300),
-      () => _search(value),
+      () => ref.read(searchControllerProvider.notifier).search(value),
     );
-  }
-
-  Future<void> _search(String q) async {
-    final query = q.trim();
-    final requestId = ++_searchRequestId;
-    if (query.isEmpty) {
-      setState(() {
-        _posts = [];
-        _users = [];
-        _query = '';
-        _loading = false;
-      });
-      return;
-    }
-    setState(() {
-      _loading = true;
-      _query = query;
-    });
-
-    try {
-      final postsData = await Supabase.instance.client
-          .from('posts')
-          .select('*, author:profiles!user_id(*), category:categories!category_id(name)')
-          .eq('is_deleted', false)
-          .ilike('content', '%$query%')
-          .order('created_at', ascending: false)
-          .limit(30);
-
-      final usersData = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .or('username.ilike.%$query%,display_name.ilike.%$query%')
-          .limit(20);
-
-      if (!mounted || requestId != _searchRequestId) return;
-      setState(() {
-        _posts = postsData.map((j) => Post.fromJson(j)).toList();
-        _users = usersData.map((j) => Profile.fromJson(j)).toList();
-        _loading = false;
-      });
-    } catch (e) {
-      if (!mounted || requestId != _searchRequestId) return;
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ne eblis ŝargi la serĉrezultojn.'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
-    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final state = ref.watch(searchControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
 
@@ -134,28 +75,29 @@ class _SearchScreenState extends State<SearchScreen>
             controller: _searchController,
             autofocus: false,
             decoration: InputDecoration(
-              hintText: 'Serĉu afiŝojn aŭ uzantojn…',
+              hintText: 'Serchu afisxojn au uzantojn...',
               prefixIcon: const Icon(Icons.search, size: 20),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 18),
                       onPressed: () {
                         _searchController.clear();
-                        _search('');
+                        ref.read(searchControllerProvider.notifier).clear();
+                        setState(() {});
                       },
                     )
                   : null,
               isDense: true,
               contentPadding: const EdgeInsets.symmetric(vertical: 10),
             ),
-            onChanged: (v) {
+            onChanged: (value) {
               setState(() {});
-              _scheduleSearch(v);
+              _scheduleSearch(value);
             },
             textInputAction: TextInputAction.search,
             onSubmitted: (value) {
               _searchDebounce?.cancel();
-              _search(value);
+              ref.read(searchControllerProvider.notifier).search(value);
             },
           ),
         ),
@@ -166,22 +108,22 @@ class _SearchScreenState extends State<SearchScreen>
           indicatorColor: colorScheme.primary,
           tabs: [
             Tab(
-              text: _query.isNotEmpty
-                  ? 'Afiŝoj (${_posts.length})'
-                  : 'Afiŝoj',
+              text: state.query.isNotEmpty
+                  ? 'Afisxoj (${state.posts.length})'
+                  : 'Afisxoj',
             ),
             Tab(
-              text: _query.isNotEmpty
-                  ? 'Uzantoj (${_users.length})'
+              text: state.query.isNotEmpty
+                  ? 'Uzantoj (${state.users.length})'
                   : 'Uzantoj',
             ),
           ],
         ),
       ),
-      body: _loading
+      body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _query.isEmpty
-              ? _EmptySearch()
+          : state.query.isEmpty
+              ? const _EmptySearch()
               : Center(
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(
@@ -192,21 +134,27 @@ class _SearchScreenState extends State<SearchScreen>
                       child: TabBarView(
                         controller: _tabController,
                         children: [
-                          _posts.isEmpty
-                              ? _NoResults(query: _query, type: _SearchTab.posts)
+                          state.posts.isEmpty
+                              ? _NoResults(
+                                  query: state.query,
+                                  type: _SearchTab.posts,
+                                )
                               : ListView.builder(
-                                  itemCount: _posts.length,
-                                  itemBuilder: (_, i) => PostCard(
-                                    key: ValueKey(_posts[i].id),
-                                    post: _posts[i],
+                                  itemCount: state.posts.length,
+                                  itemBuilder: (_, index) => PostCard(
+                                    key: ValueKey(state.posts[index].id),
+                                    post: state.posts[index],
                                   ),
                                 ),
-                          _users.isEmpty
-                              ? _NoResults(query: _query, type: _SearchTab.users)
+                          state.users.isEmpty
+                              ? _NoResults(
+                                  query: state.query,
+                                  type: _SearchTab.users,
+                                )
                               : ListView.builder(
-                                  itemCount: _users.length,
-                                  itemBuilder: (_, i) =>
-                                      _UserTile(profile: _users[i]),
+                                  itemCount: state.users.length,
+                                  itemBuilder: (_, index) =>
+                                      _UserTile(profile: state.users[index]),
                                 ),
                         ],
                       ),
@@ -218,6 +166,8 @@ class _SearchScreenState extends State<SearchScreen>
 }
 
 class _EmptySearch extends StatelessWidget {
+  const _EmptySearch();
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -233,7 +183,7 @@ class _EmptySearch extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Serĉu afiŝojn aŭ uzantojn',
+              'Serchu afisxojn au uzantojn',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
                 fontSize: 16,
@@ -249,7 +199,11 @@ class _EmptySearch extends StatelessWidget {
 class _NoResults extends StatelessWidget {
   final String query;
   final _SearchTab type;
-  const _NoResults({required this.query, required this.type});
+
+  const _NoResults({
+    required this.query,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -257,7 +211,7 @@ class _NoResults extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Text(
-          'Neniu ${type == _SearchTab.posts ? 'afiŝo' : 'uzanto'} trovita por "$query"',
+          'Neniu ${type == _SearchTab.posts ? 'afisxo' : 'uzanto'} trovita por "$query"',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
@@ -271,6 +225,7 @@ class _NoResults extends StatelessWidget {
 
 class _UserTile extends StatelessWidget {
   final Profile profile;
+
   const _UserTile({required this.profile});
 
   @override
@@ -300,7 +255,7 @@ class _UserTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
         ),
       ),
-      onTap: () => context.push('/profilo/${profile.username}'),
+      onTap: () => context.push('${AppRoutes.profilePrefix}/${profile.username}'),
     );
   }
 }

@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/responsive.dart';
-import '../../widgets/esperanto_star.dart';
+import '../../../app/routing/app_routes.dart';
+import '../../../core/responsive.dart';
+import '../../../widgets/esperanto_star.dart';
+import '../application/auth_providers.dart';
+import '../domain/auth_failure.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
   bool _obscurePassword = true;
 
   @override
@@ -28,29 +30,26 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _signIn() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
+
     try {
-      await Supabase.instance.client.auth.signInWithPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
+      await ref.read(authActionControllerProvider.notifier).signIn(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+          );
+    } on AuthFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.redAccent,
+        ),
       );
-      if (mounted) context.go('/fonto');
-    } on AuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authActionControllerProvider).isLoading;
     final isWideLandscape = ResponsiveLayout.isLandscape(context) &&
         MediaQuery.sizeOf(context).width >= 700;
 
@@ -78,14 +77,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                color: Theme.of(
-                                  context,
-                                ).colorScheme.primary.withAlpha(20),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withAlpha(20),
                                 borderRadius: BorderRadius.circular(20),
                                 border: Border.all(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.primary.withAlpha(60),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .primary
+                                      .withAlpha(60),
                                 ),
                               ),
                               child: EsperantoStar(
@@ -144,15 +145,15 @@ class _LoginScreenState extends State<LoginScreen> {
                                     controller: _emailController,
                                     keyboardType: TextInputType.emailAddress,
                                     decoration: const InputDecoration(
-                                      labelText: 'Retpoŝtadreso',
+                                      labelText: 'Retposhtadreso',
                                       prefixIcon: Icon(Icons.email_outlined),
                                     ),
-                                    validator: (v) {
-                                      if (v == null || v.isEmpty) {
-                                        return 'Enigu vian retpoŝtadreson';
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
+                                        return 'Enigu vian retposhtadreson';
                                       }
-                                      if (!v.contains('@')) {
-                                        return 'Nevalida retpoŝtadreso';
+                                      if (!value.contains('@')) {
+                                        return 'Nevalida retposhtadreso';
                                       }
                                       return null;
                                     },
@@ -177,8 +178,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                         ),
                                       ),
                                     ),
-                                    validator: (v) {
-                                      if (v == null || v.isEmpty) {
+                                    validator: (value) {
+                                      if (value == null || value.isEmpty) {
                                         return 'Enigu vian pasvorton';
                                       }
                                       return null;
@@ -188,8 +189,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                   SizedBox(
                                     width: double.infinity,
                                     child: ElevatedButton(
-                                      onPressed: _loading ? null : _signIn,
-                                      child: _loading
+                                      onPressed: isLoading ? null : _signIn,
+                                      child: isLoading
                                           ? const SizedBox(
                                               height: 20,
                                               width: 20,
@@ -210,27 +211,29 @@ class _LoginScreenState extends State<LoginScreen> {
                               crossAxisAlignment: WrapCrossAlignment.center,
                               children: [
                                 Text(
-                                  'Ankoraŭ ne havas konton? ',
+                                  'Ankorau ne havas konton? ',
                                   style: TextStyle(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.onSurface.withAlpha(150),
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withAlpha(150),
                                   ),
                                 ),
                                 TextButton(
-                                  onPressed: () => context.go('/registrigxi'),
-                                  child: const Text('Registriĝu'),
+                                  onPressed: () => context.go(AppRoutes.register),
+                                  child: const Text('Registrigxu'),
                                 ),
                               ],
                             ),
                             TextButton(
-                              onPressed: () => context.go('/fonto'),
+                              onPressed: () => context.go(AppRoutes.feed),
                               child: Text(
-                                'Daŭrigu sen konto',
+                                'Daurigu sen konto',
                                 style: TextStyle(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurface.withAlpha(120),
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface
+                                      .withAlpha(120),
                                 ),
                               ),
                             ),

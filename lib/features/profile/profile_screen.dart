@@ -1,131 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../app/routing/app_routes.dart';
 import '../../core/responsive.dart';
-import '../../models/post.dart';
 import '../../models/profile.dart';
 import '../../widgets/user_avatar.dart';
+import '../auth/application/auth_providers.dart';
 import '../feed/widgets/post_card.dart';
+import 'application/profile_providers.dart';
+import 'data/supabase_profile_repository.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends ConsumerWidget {
   final String username;
+
   const ProfileScreen({super.key, required this.username});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  Profile? _profile;
-  List<Post> _posts = [];
-  bool _loading = true;
-  bool _isFollowing = false;
-  bool _followLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    try {
-      final profileData = await Supabase.instance.client
-          .from('profiles')
-          .select()
-          .eq('username', widget.username)
-          .single();
-
-      final profile = Profile.fromJson(profileData);
-
-      final postsData = await Supabase.instance.client
-          .from('posts')
-          .select('*, author:profiles!user_id(*), category:categories!category_id(name)')
-          .eq('user_id', profile.id)
-          .eq('is_deleted', false)
-          .order('created_at', ascending: false)
-          .limit(30);
-
-      final userId = Supabase.instance.client.auth.currentUser?.id;
-      bool isFollowing = false;
-      if (userId != null && userId != profile.id) {
-        final followData = await Supabase.instance.client
-            .from('follows')
-            .select('id')
-            .eq('follower_id', userId)
-            .eq('following_id', profile.id)
-            .maybeSingle();
-        isFollowing = followData != null;
-      }
-
-      setState(() {
-        _profile = profile;
-        _posts = postsData.map((j) => Post.fromJson(j)).toList();
-        _isFollowing = isFollowing;
-        _loading = false;
-      });
-    } catch (e) {
-      if (mounted) {
-        setState(() => _loading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Eraro: $e'), backgroundColor: Colors.red),
-        );
-      }
-    }
-  }
-
-  Future<void> _toggleFollow() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
-      context.push('/ensaluti');
-      return;
-    }
-    if (_followLoading || _profile == null) return;
-    setState(() => _followLoading = true);
-
-    try {
-      if (_isFollowing) {
-        await Supabase.instance.client
-            .from('follows')
-            .delete()
-            .eq('follower_id', userId)
-            .eq('following_id', _profile!.id);
-        setState(() => _isFollowing = false);
-      } else {
-        await Supabase.instance.client.from('follows').insert({
-          'follower_id': userId,
-          'following_id': _profile!.id,
-        });
-        setState(() => _isFollowing = true);
-      }
-    } catch (_) {
-    } finally {
-      if (mounted) setState(() => _followLoading = false);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final state = ref.watch(profileControllerProvider(username));
+    final controller = ref.read(profileControllerProvider(username).notifier);
     final colorScheme = Theme.of(context).colorScheme;
-    final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+    final currentUserId = ref.watch(currentUserIdProvider);
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
+    final isOwnProfile =
+        state.profile != null && currentUserId == state.profile!.id;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_profile?.username ?? widget.username),
+        title: Text(state.profile?.username ?? username),
         actions: [
-          if (_profile != null && currentUserId == _profile!.id)
+          if (isOwnProfile)
             IconButton(
               icon: const Icon(Icons.settings_outlined),
-              onPressed: () => context.go('/agordoj'),
+              onPressed: () => context.go(AppRoutes.settings),
             ),
         ],
       ),
-      body: _loading
+      body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _profile == null
-              ? const Center(child: Text('Profilo ne trovita'))
+          : state.profile == null
+              ? Center(
+                  child: Text(state.errorMessage ?? 'Profilo ne trovita'),
+                )
               : CustomScrollView(
                   slivers: [
                     SliverPadding(
@@ -137,11 +54,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               maxWidth: ResponsiveLayout.contentMaxWidth,
                             ),
                             child: _ProfileHeader(
-                              profile: _profile!,
-                              isFollowing: _isFollowing,
-                              isOwnProfile: currentUserId == _profile!.id,
-                              followLoading: _followLoading,
-                              onFollowTap: _toggleFollow,
+                              profile: state.profile!,
+                              isFollowing: state.isFollowing,
+                              isOwnProfile: isOwnProfile,
+                              followLoading: state.isFollowLoading,
+                              onFollowTap: () async {
+                                if (!ref
+                                    .read(authStateNotifierProvider)
+                                    .isAuthenticated) {
+                                  context.push(AppRoutes.login);
+                                  return;
+                                }
+
+                                try {
+                                  await controller.toggleFollow();
+                                } on ProfileActionFailure catch (error) {
+                                  if (!context.mounted) return;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(error.message),
+                                      backgroundColor: Colors.redAccent,
+                                    ),
+                                  );
+                                }
+                              },
                             ),
                           ),
                         ),
@@ -161,7 +97,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               maxWidth: ResponsiveLayout.contentMaxWidth,
                             ),
                             child: Text(
-                              '${_posts.length} afiŝoj',
+                              '${state.posts.length} afisxoj',
                               style: TextStyle(
                                 color: colorScheme.onSurface.withAlpha(150),
                                 fontSize: 13,
@@ -171,10 +107,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                     ),
-                    if (_posts.isEmpty)
+                    if (state.posts.isEmpty)
                       SliverToBoxAdapter(
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: horizontalPadding),
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(
@@ -183,7 +120,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(32),
                                 child: Text(
-                                  'Ankoraŭ ne estas afiŝoj',
+                                  'Ankorau ne estas afisxoj',
                                   style: TextStyle(
                                     color: colorScheme.onSurface.withAlpha(150),
                                   ),
@@ -196,21 +133,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     else
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
-                          (_, i) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                          (_, index) => Padding(
+                            padding:
+                                EdgeInsets.symmetric(horizontal: horizontalPadding),
                             child: Center(
                               child: ConstrainedBox(
                                 constraints: const BoxConstraints(
                                   maxWidth: ResponsiveLayout.contentMaxWidth,
                                 ),
                                 child: PostCard(
-                                  key: ValueKey(_posts[i].id),
-                                  post: _posts[i],
+                                  key: ValueKey(state.posts[index].id),
+                                  post: state.posts[index],
                                 ),
                               ),
                             ),
                           ),
-                          childCount: _posts.length,
+                          childCount: state.posts.length,
                         ),
                       ),
                   ],
@@ -237,11 +175,11 @@ class _ProfileHeader extends StatelessWidget {
   String get _levelLabel {
     switch (profile.esperantoLevel) {
       case 'progresanto':
-        return '🌿 Progresanto';
+        return 'Progresanto';
       case 'flua':
-        return '🌳 Flua';
+        return 'Flua';
       default:
-        return '🌱 Komencanto';
+        return 'Komencanto';
     }
   }
 
@@ -290,7 +228,7 @@ class _ProfileHeader extends StatelessWidget {
                                 height: 16,
                                 child: CircularProgressIndicator(strokeWidth: 2),
                               )
-                            : Text(isFollowing ? 'Malsekvata' : 'Sekvu'),
+                            : Text(isFollowing ? 'Malsekvu' : 'Sekvu'),
                       ),
                   ],
                 ),
@@ -326,7 +264,7 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               _StatItem(count: profile.followingCount, label: 'Sekvitaj'),
               _StatItem(count: profile.followersCount, label: 'Sekvantoj'),
-              _StatItem(count: profile.postsCount, label: 'Afiŝoj'),
+              _StatItem(count: profile.postsCount, label: 'Afisxoj'),
             ],
           ),
         ],
@@ -338,6 +276,7 @@ class _ProfileHeader extends StatelessWidget {
 class _StatItem extends StatelessWidget {
   final int count;
   final String label;
+
   const _StatItem({required this.count, required this.label});
 
   @override

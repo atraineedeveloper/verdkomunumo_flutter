@@ -1,119 +1,52 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../../app/routing/app_routes.dart';
 import '../../../models/post.dart';
 import '../../../widgets/user_avatar.dart';
+import '../../auth/application/auth_providers.dart';
+import '../../post_interactions/application/post_interactions_providers.dart';
 
-class PostCard extends StatefulWidget {
+class PostCard extends ConsumerWidget {
   final Post post;
+
   const PostCard({super.key, required this.post});
 
   @override
-  State<PostCard> createState() => _PostCardState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final author = post.author;
+    final colorScheme = Theme.of(context).colorScheme;
+    final args = PostInteractionArgs(
+      postId: post.id,
+      initialLikesCount: post.likesCount,
+    );
+    final interactionState = ref.watch(postInteractionControllerProvider(args));
+    final isLoggedIn = ref.watch(authStateNotifierProvider).isAuthenticated;
 
-class _PostCardState extends State<PostCard> {
-  late int _likesCount;
-  bool _liked = false;
-  bool _likeLoading = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _syncFromPost();
-  }
-
-  @override
-  void didUpdateWidget(covariant PostCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.post.id != widget.post.id ||
-        oldWidget.post.likesCount != widget.post.likesCount) {
-      _syncFromPost();
-    }
-  }
-
-  void _syncFromPost() {
-    _likesCount = widget.post.likesCount;
-    _liked = false;
-    _checkIfLiked();
-  }
-
-  Future<void> _checkIfLiked() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) return;
-    final postId = widget.post.id;
-    final result = await Supabase.instance.client
-        .from('likes')
-        .select('id')
-        .eq('user_id', userId)
-        .eq('post_id', postId)
-        .maybeSingle();
-    if (mounted && widget.post.id == postId) {
-      setState(() => _liked = result != null);
-    }
-  }
-
-  Future<void> _toggleLike() async {
-    final userId = Supabase.instance.client.auth.currentUser?.id;
-    if (userId == null) {
-      context.go('/ensaluti');
-      return;
-    }
-    if (_likeLoading) return;
-    final previousLiked = _liked;
-    final previousLikesCount = _likesCount;
-    setState(() => _likeLoading = true);
-
-    try {
-      if (_liked) {
-        setState(() {
-          _liked = false;
-          _likesCount = (_likesCount - 1).clamp(0, 1 << 31);
-        });
-        await Supabase.instance.client
-            .from('likes')
-            .delete()
-            .eq('user_id', userId)
-            .eq('post_id', widget.post.id);
-      } else {
-        setState(() {
-          _liked = true;
-          _likesCount++;
-        });
-        await Supabase.instance.client.from('likes').insert({
-          'user_id': userId,
-          'post_id': widget.post.id,
-        });
+    Future<void> handleToggleLike() async {
+      if (!isLoggedIn) {
+        context.go(AppRoutes.login);
+        return;
       }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _liked = previousLiked;
-          _likesCount = previousLikesCount;
-        });
+
+      final success = await ref
+          .read(postInteractionControllerProvider(args).notifier)
+          .toggleLike();
+      if (!success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ne eblis ĝisdatigi la ŝaton.'),
+            content: Text('Ne eblis gxisdatigi la sxaton.'),
             backgroundColor: Colors.redAccent,
           ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _likeLoading = false);
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final post = widget.post;
-    final author = post.author;
-    final colorScheme = Theme.of(context).colorScheme;
 
     return InkWell(
-      onTap: () => context.push('/afisxo/${post.id}'),
+      onTap: () => context.push('${AppRoutes.postDetailPrefix}/${post.id}'),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -124,14 +57,13 @@ class _PostCardState extends State<PostCard> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 GestureDetector(
                   onTap: () {
                     if (author != null) {
-                      context.push('/profilo/${author.username}');
+                      context.push('${AppRoutes.profilePrefix}/${author.username}');
                     }
                   },
                   child: UserAvatar(
@@ -187,9 +119,7 @@ class _PostCardState extends State<PostCard> {
               ],
             ),
             const SizedBox(height: 12),
-            // Content
             Text(post.content, style: const TextStyle(fontSize: 15, height: 1.4)),
-            // Images
             if (post.imageUrls.isNotEmpty) ...[
               const SizedBox(height: 12),
               ClipRRect(
@@ -213,21 +143,23 @@ class _PostCardState extends State<PostCard> {
               ),
             ],
             const SizedBox(height: 12),
-            // Actions
             Row(
               children: [
                 _ActionButton(
-                  icon: _liked ? Icons.favorite : Icons.favorite_border,
-                  count: _likesCount,
-                  color: _liked ? Colors.redAccent : null,
-                  onTap: _toggleLike,
-                  loading: _likeLoading,
+                  icon: interactionState.isLiked
+                      ? Icons.favorite
+                      : Icons.favorite_border,
+                  count: interactionState.likesCount,
+                  color: interactionState.isLiked ? Colors.redAccent : null,
+                  onTap: handleToggleLike,
+                  loading: interactionState.isLoading,
                 ),
                 const SizedBox(width: 24),
                 _ActionButton(
                   icon: Icons.chat_bubble_outline,
                   count: post.commentsCount,
-                  onTap: () => context.push('/afisxo/${post.id}'),
+                  onTap: () =>
+                      context.push('${AppRoutes.postDetailPrefix}/${post.id}'),
                 ),
               ],
             ),

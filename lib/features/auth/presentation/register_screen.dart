@@ -1,22 +1,24 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../../core/responsive.dart';
+import '../../../app/routing/app_routes.dart';
+import '../../../core/responsive.dart';
+import '../application/auth_providers.dart';
+import '../domain/auth_failure.dart';
 
-class RegisterScreen extends StatefulWidget {
+class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  ConsumerState<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _loading = false;
   bool _obscurePassword = true;
   String _esperantoLevel = 'komencanto';
 
@@ -30,61 +32,38 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> _signUp() async {
     if (!_formKey.currentState!.validate()) return;
-    setState(() => _loading = true);
+
     final normalizedUsername = _usernameController.text.trim().toLowerCase();
+
     try {
-      final response = await Supabase.instance.client.auth.signUp(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-        data: {
-          'username': normalizedUsername,
-          'esperanto_level': _esperantoLevel,
-        },
-      );
-
-      if (response.user != null) {
-        // Create profile
-        await Supabase.instance.client.from('profiles').upsert({
-          'id': response.user!.id,
-          'username': normalizedUsername,
-          'esperanto_level': _esperantoLevel,
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Konto kreita sukcese!'),
-              backgroundColor: Color(0xFF22C55E),
-            ),
+      await ref.read(authActionControllerProvider.notifier).signUp(
+            email: _emailController.text.trim(),
+            password: _passwordController.text,
+            username: normalizedUsername,
+            esperantoLevel: _esperantoLevel,
           );
-          context.go('/fonto');
-        }
-      }
-    } on AuthException catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Eraro: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _loading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Konto kreita sukcese!'),
+          backgroundColor: Color(0xFF22C55E),
+        ),
+      );
+      context.go(AppRoutes.feed);
+    } on AuthFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = ref.watch(authActionControllerProvider).isLoading;
     final isWideLandscape = ResponsiveLayout.isLandscape(context) &&
         MediaQuery.sizeOf(context).width >= 700;
 
@@ -92,7 +71,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/ensaluti'),
+          onPressed: () => context.go(AppRoutes.login),
         ),
         title: const Text('Nova Konto'),
       ),
@@ -129,7 +108,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            'Aliĝu al la verda komunumo',
+                            'Aligxu al la verda komunumo',
                             textAlign: isWideLandscape
                                 ? TextAlign.left
                                 : TextAlign.center,
@@ -168,13 +147,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 prefixIcon: Icon(Icons.alternate_email),
                                 hintText: 'ekzemple: johano',
                               ),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) {
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
                                   return 'Enigu salutnomon';
                                 }
-                                if (v.length < 3) return 'Almenaŭ 3 signoj';
+                                if (value.length < 3) {
+                                  return 'Almenau 3 signoj';
+                                }
                                 if (!RegExp(r'^[a-z0-9_]+$')
-                                    .hasMatch(v.toLowerCase())) {
+                                    .hasMatch(value.toLowerCase())) {
                                   return 'Nur literoj, ciferoj kaj _';
                                 }
                                 return null;
@@ -185,15 +166,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                               controller: _emailController,
                               keyboardType: TextInputType.emailAddress,
                               decoration: const InputDecoration(
-                                labelText: 'Retpoŝtadreso',
+                                labelText: 'Retposhtadreso',
                                 prefixIcon: Icon(Icons.email_outlined),
                               ),
-                              validator: (v) {
-                                if (v == null || v.isEmpty) {
-                                  return 'Enigu retpoŝtadreson';
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Enigu retposhtadreson';
                                 }
-                                if (!v.contains('@')) {
-                                  return 'Nevalida retpoŝtadreso';
+                                if (!value.contains('@')) {
+                                  return 'Nevalida retposhtadreso';
                                 }
                                 return null;
                               },
@@ -216,9 +197,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 ),
                               ),
-                              validator: (v) {
-                                if (v == null || v.length < 6) {
-                                  return 'Almenaŭ 6 signoj';
+                              validator: (value) {
+                                if (value == null || value.length < 6) {
+                                  return 'Almenau 6 signoj';
                                 }
                                 return null;
                               },
@@ -234,21 +215,31 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                 const SizedBox(height: 8),
                                 RadioGroup<String>(
                                   groupValue: _esperantoLevel,
-                                  onChanged: (v) =>
-                                      setState(() => _esperantoLevel = v!),
+                                  onChanged: (value) {
+                                    setState(() => _esperantoLevel = value!);
+                                  },
                                   child: Column(
-                                    children: {
-                                      'komencanto': '🌱 Komencanto (Beginners)',
-                                      'progresanto':
-                                          '🌿 Progresanto (Intermediate)',
-                                      'flua': '🌳 Flua (Fluent)',
-                                    }.entries.map(
-                                      (e) => RadioListTile<String>(
-                                        value: e.key,
-                                        title: Text(e.value),
+                                    children: const [
+                                      RadioListTile<String>(
+                                        value: 'komencanto',
+                                        title: Text(
+                                          'Komencanto (Beginners)',
+                                        ),
                                         contentPadding: EdgeInsets.zero,
                                       ),
-                                    ).toList(),
+                                      RadioListTile<String>(
+                                        value: 'progresanto',
+                                        title: Text(
+                                          'Progresanto (Intermediate)',
+                                        ),
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                      RadioListTile<String>(
+                                        value: 'flua',
+                                        title: Text('Flua (Fluent)'),
+                                        contentPadding: EdgeInsets.zero,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
@@ -257,8 +248,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                             SizedBox(
                               width: double.infinity,
                               child: ElevatedButton(
-                                onPressed: _loading ? null : _signUp,
-                                child: _loading
+                                onPressed: isLoading ? null : _signUp,
+                                child: isLoading
                                     ? const SizedBox(
                                         height: 20,
                                         width: 20,
@@ -284,7 +275,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                                   ),
                                 ),
                                 TextButton(
-                                  onPressed: () => context.go('/ensaluti'),
+                                  onPressed: () => context.go(AppRoutes.login),
                                   child: const Text('Ensalutu'),
                                 ),
                               ],

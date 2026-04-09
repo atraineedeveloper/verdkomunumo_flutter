@@ -1,113 +1,45 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../app/routing/app_routes.dart';
 import '../core/responsive.dart';
+import '../features/auth/application/auth_providers.dart';
 
-class MainShell extends StatefulWidget {
+class MainShell extends ConsumerWidget {
   final Widget child;
+
   const MainShell({super.key, required this.child});
 
-  @override
-  State<MainShell> createState() => _MainShellState();
-}
-
-class _MainShellState extends State<MainShell> {
-  StreamSubscription<AuthState>? _authSubscription;
-  String? _currentUsername;
-  bool _loadingUsername = false;
-
   int _locationToIndex(String location) {
-    if (location.startsWith('/fonto')) return 0;
-    if (location.startsWith('/sercxi')) return 1;
-    if (location.startsWith('/sciigoj')) return 2;
-    if (location.startsWith('/profilo')) return 3;
-    if (location.startsWith('/agordoj')) return 4;
+    if (location.startsWith(AppRoutes.feed)) return 0;
+    if (location.startsWith(AppRoutes.search)) return 1;
+    if (location.startsWith(AppRoutes.notifications)) return 2;
+    if (location.startsWith(AppRoutes.profilePrefix)) return 3;
+    if (location.startsWith(AppRoutes.settings)) return 4;
     return 0;
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _refreshCurrentUsername();
-    _authSubscription = Supabase.instance.client.auth.onAuthStateChange.listen((
-      _,
-    ) {
-      _refreshCurrentUsername(forceRefresh: true);
-    });
-  }
-
-  @override
-  void dispose() {
-    _authSubscription?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _refreshCurrentUsername({bool forceRefresh = false}) async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) {
-      if (mounted) {
-        setState(() {
-          _currentUsername = null;
-          _loadingUsername = false;
-        });
-      }
+  Future<void> _openCurrentProfile(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<String?> currentUsernameAsync,
+  ) async {
+    final userId = ref.read(currentUserIdProvider);
+    if (userId == null) {
+      context.go(AppRoutes.login);
       return;
     }
 
-    if (!forceRefresh && _currentUsername != null) return;
-
-    final metadataUsername = (user.userMetadata?['username'] as String?)
-        ?.trim();
-    if (metadataUsername != null && metadataUsername.isNotEmpty) {
-      if (mounted) {
-        setState(() => _currentUsername = metadataUsername);
-      }
-      return;
+    var username = currentUsernameAsync.valueOrNull;
+    if ((username == null || username.isEmpty) &&
+        currentUsernameAsync.isLoading) {
+      username = await ref.read(currentUsernameProvider.future);
+      if (!context.mounted) return;
     }
-
-    if (mounted) {
-      setState(() => _loadingUsername = true);
-    }
-
-    try {
-      final profileData = await Supabase.instance.client
-          .from('profiles')
-          .select('username')
-          .eq('id', user.id)
-          .maybeSingle();
-      final username = (profileData?['username'] as String?)?.trim();
-      if (!mounted) return;
-      setState(() {
-        _currentUsername =
-            username != null && username.isNotEmpty ? username : null;
-        _loadingUsername = false;
-      });
-    } catch (_) {
-      if (!mounted) return;
-      setState(() => _loadingUsername = false);
-    }
-  }
-
-  Future<void> _openCurrentProfile() async {
-    final user = Supabase.instance.client.auth.currentUser;
-    if (user == null) {
-      context.go('/ensaluti');
-      return;
-    }
-
-    var username = _currentUsername;
-    if ((username == null || username.isEmpty) && !_loadingUsername) {
-      await _refreshCurrentUsername(forceRefresh: true);
-      username = _currentUsername;
-    }
-
-    if (!mounted) return;
 
     if (username != null && username.isNotEmpty) {
-      context.go('/profilo/$username');
+      context.go('${AppRoutes.profilePrefix}/$username');
       return;
     }
 
@@ -117,49 +49,58 @@ class _MainShellState extends State<MainShell> {
         backgroundColor: Colors.redAccent,
       ),
     );
-    context.go('/agordoj');
+    context.go(AppRoutes.settings);
   }
 
-  Future<void> _onDestinationSelected(int index, bool isLoggedIn) async {
+  Future<void> _onDestinationSelected(
+    BuildContext context,
+    WidgetRef ref,
+    int index,
+    bool isLoggedIn,
+    AsyncValue<String?> currentUsernameAsync,
+  ) async {
     switch (index) {
       case 0:
-        context.go('/fonto');
+        context.go(AppRoutes.feed);
         return;
       case 1:
-        context.go('/sercxi');
+        context.go(AppRoutes.search);
         return;
       case 2:
-        if (isLoggedIn) {
-          context.go('/sciigoj');
-        } else {
-          context.go('/ensaluti');
-        }
+        context.go(isLoggedIn ? AppRoutes.notifications : AppRoutes.login);
         return;
       case 3:
-        await _openCurrentProfile();
+        await _openCurrentProfile(context, ref, currentUsernameAsync);
+        if (!context.mounted) return;
         return;
       case 4:
-        context.go('/agordoj');
+        context.go(AppRoutes.settings);
         return;
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
     final currentIndex = _locationToIndex(location);
-    final isLoggedIn = Supabase.instance.client.auth.currentSession != null;
+    final isLoggedIn = ref.watch(authStateNotifierProvider).isAuthenticated;
+    final currentUsernameAsync = ref.watch(currentUsernameProvider);
     final useRailNavigation = ResponsiveLayout.useRailNavigation(context);
 
     return Scaffold(
       body: !useRailNavigation
-          ? widget.child
+          ? child
           : Row(
               children: [
                 NavigationRail(
                   selectedIndex: currentIndex,
-                  onDestinationSelected: (index) =>
-                      _onDestinationSelected(index, isLoggedIn),
+                  onDestinationSelected: (index) => _onDestinationSelected(
+                    context,
+                    ref,
+                    index,
+                    isLoggedIn,
+                    currentUsernameAsync,
+                  ),
                   labelType: NavigationRailLabelType.all,
                   backgroundColor: Theme.of(context).colorScheme.surface,
                   selectedIconTheme: IconThemeData(
@@ -170,10 +111,14 @@ class _MainShellState extends State<MainShell> {
                     fontWeight: FontWeight.w600,
                   ),
                   unselectedIconTheme: IconThemeData(
-                    color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(150),
                   ),
                   unselectedLabelTextStyle: TextStyle(
-                    color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withAlpha(150),
                   ),
                   leading: Padding(
                     padding: const EdgeInsets.only(top: 16),
@@ -191,7 +136,7 @@ class _MainShellState extends State<MainShell> {
                     NavigationRailDestination(
                       icon: Icon(Icons.search),
                       selectedIcon: Icon(Icons.search),
-                      label: Text('Serĉi'),
+                      label: Text('Serchi'),
                     ),
                     NavigationRailDestination(
                       icon: Icon(Icons.notifications_outlined),
@@ -215,14 +160,19 @@ class _MainShellState extends State<MainShell> {
                   thickness: 1,
                   color: Theme.of(context).colorScheme.outline,
                 ),
-                Expanded(child: widget.child),
+                Expanded(child: child),
               ],
             ),
       bottomNavigationBar: !useRailNavigation
           ? BottomNavigationBar(
               currentIndex: currentIndex,
-              onTap: (index) =>
-                  _onDestinationSelected(index, isLoggedIn),
+              onTap: (index) => _onDestinationSelected(
+                context,
+                ref,
+                index,
+                isLoggedIn,
+                currentUsernameAsync,
+              ),
               items: const [
                 BottomNavigationBarItem(
                   icon: Icon(Icons.home_outlined),
@@ -232,7 +182,7 @@ class _MainShellState extends State<MainShell> {
                 BottomNavigationBarItem(
                   icon: Icon(Icons.search),
                   activeIcon: Icon(Icons.search),
-                  label: 'Serĉi',
+                  label: 'Serchi',
                 ),
                 BottomNavigationBarItem(
                   icon: Icon(Icons.notifications_outlined),

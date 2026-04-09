@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import 'app/app.dart';
 import 'core/constants.dart';
-import 'core/router.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
 
@@ -29,33 +30,11 @@ void main() async {
 
   final themeController = await AppThemeController.load();
 
-  runApp(VerdkomunumoApp(themeController: themeController));
-}
-
-class VerdkomunumoApp extends StatelessWidget {
-  final AppThemeController themeController;
-
-  const VerdkomunumoApp({super.key, required this.themeController});
-
-  @override
-  Widget build(BuildContext context) {
-    return ThemeControllerScope(
-      controller: themeController,
-      child: AnimatedBuilder(
-        animation: themeController,
-        builder: (context, _) {
-          return MaterialApp.router(
-            title: AppConstants.appName,
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeController.themeMode,
-            routerConfig: appRouter,
-          );
-        },
-      ),
-    );
-  }
+  runApp(
+    ProviderScope(
+      child: VerdkomunumoApp(themeController: themeController),
+    ),
+  );
 }
 
 class ConfigurationErrorApp extends StatelessWidget {

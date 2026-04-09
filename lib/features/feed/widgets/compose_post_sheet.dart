@@ -1,18 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants.dart';
+import '../application/feed_providers.dart';
+import '../data/supabase_feed_repository.dart';
+import '../domain/feed_category.dart';
 
-class ComposePostSheet extends StatefulWidget {
-  final List<Map<String, String>> categories;
+class ComposePostSheet extends ConsumerStatefulWidget {
+  final List<FeedCategory> categories;
 
   const ComposePostSheet({super.key, this.categories = const []});
 
   @override
-  State<ComposePostSheet> createState() => _ComposePostSheetState();
+  ConsumerState<ComposePostSheet> createState() => _ComposePostSheetState();
 }
 
-class _ComposePostSheetState extends State<ComposePostSheet> {
+class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
   final _controller = TextEditingController();
   bool _loading = false;
   String? _selectedCategoryId;
@@ -26,21 +29,27 @@ class _ComposePostSheetState extends State<ComposePostSheet> {
   Future<void> _submit() async {
     final content = _controller.text.trim();
     if (content.isEmpty) return;
+
     setState(() => _loading = true);
     try {
-      final userId = Supabase.instance.client.auth.currentUser!.id;
-      await Supabase.instance.client.from('posts').insert({
-        'user_id': userId,
-        'content': content,
-        if (_selectedCategoryId != null) 'category_id': _selectedCategoryId,
-      });
+      await ref.read(feedControllerProvider.notifier).createPost(
+            content: content,
+            categoryId: _selectedCategoryId,
+          );
       if (mounted) Navigator.of(context).pop();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Eraro: $e'), backgroundColor: Colors.red),
-        );
-      }
+    } on PostCreationFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error.message), backgroundColor: Colors.red),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Ne eblis krei la afisxon.'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -66,7 +75,7 @@ class _ComposePostSheetState extends State<ComposePostSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Nova afiŝo',
+                'Nova afisxo',
                 style: Theme.of(context)
                     .textTheme
                     .titleMedium
@@ -102,18 +111,17 @@ class _ComposePostSheetState extends State<ComposePostSheet> {
             onChanged: (_) => setState(() {}),
           ),
           const SizedBox(height: 10),
-          // Category selector
           if (widget.categories.isNotEmpty)
             SizedBox(
               height: 36,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 children: [
-                  // "Neniu" chip
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: ChoiceChip(
-                      label: const Text('—', style: TextStyle(fontSize: 12)),
+                      label:
+                          const Text('Neniu', style: TextStyle(fontSize: 12)),
                       selected: _selectedCategoryId == null,
                       onSelected: (_) =>
                           setState(() => _selectedCategoryId = null),
@@ -122,21 +130,22 @@ class _ComposePostSheetState extends State<ComposePostSheet> {
                       padding: EdgeInsets.zero,
                     ),
                   ),
-                  ...widget.categories.map((cat) {
-                    final selected = _selectedCategoryId == cat['id'];
+                  ...widget.categories.map((category) {
+                    final selected = _selectedCategoryId == category.id;
                     return Padding(
                       padding: const EdgeInsets.only(right: 6),
                       child: ChoiceChip(
                         label: Text(
-                          cat['name'] ?? '',
+                          category.name,
                           style: TextStyle(
                             fontSize: 12,
-                            color: selected ? Colors.black : colorScheme.onSurface,
+                            color:
+                                selected ? Colors.black : colorScheme.onSurface,
                           ),
                         ),
                         selected: selected,
                         onSelected: (_) =>
-                            setState(() => _selectedCategoryId = cat['id']),
+                            setState(() => _selectedCategoryId = category.id),
                         selectedColor: colorScheme.primary,
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,

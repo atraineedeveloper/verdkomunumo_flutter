@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -57,9 +58,11 @@ void main() {
     }
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: PostCard(post: buildPost(id: 'post-1', likesCount: 3)),
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: PostCard(post: buildPost(id: 'post-1', likesCount: 3)),
+          ),
         ),
       ),
     );
@@ -67,9 +70,11 @@ void main() {
     expect(find.text('3'), findsOneWidget);
 
     await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: PostCard(post: buildPost(id: 'post-2', likesCount: 8)),
+      ProviderScope(
+        child: MaterialApp(
+          home: Scaffold(
+            body: PostCard(post: buildPost(id: 'post-2', likesCount: 8)),
+          ),
         ),
       ),
     );
