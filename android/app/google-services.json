@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "717949921620",
+    "project_id": "verdkomunumo-mobile",
+    "storage_bucket": "verdkomunumo-mobile.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:717949921620:android:7d7e1e279d2ce8e09640c1",
+        "android_client_info": {
+          "package_name": "world.verdkomunumo.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRyOM0gGiA648qt2nbHNnLWX-jSUiPtLs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

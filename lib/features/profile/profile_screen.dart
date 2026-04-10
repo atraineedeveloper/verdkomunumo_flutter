@@ -3,13 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../app/routing/app_routes.dart';
+import '../../core/error/app_failure.dart';
 import '../../core/responsive.dart';
 import '../../models/profile.dart';
 import '../../widgets/user_avatar.dart';
 import '../auth/application/auth_providers.dart';
 import '../feed/widgets/post_card.dart';
 import 'application/profile_providers.dart';
-import 'data/supabase_profile_repository.dart';
 
 class ProfileScreen extends ConsumerWidget {
   final String username;
@@ -40,119 +40,119 @@ class ProfileScreen extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.profile == null
-              ? Center(
-                  child: Text(state.errorMessage ?? 'Profilo ne trovita'),
-                )
-              : CustomScrollView(
-                  slivers: [
-                    SliverPadding(
-                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                      sliver: SliverToBoxAdapter(
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: ResponsiveLayout.contentMaxWidth,
-                            ),
-                            child: _ProfileHeader(
-                              profile: state.profile!,
-                              isFollowing: state.isFollowing,
-                              isOwnProfile: isOwnProfile,
-                              followLoading: state.isFollowLoading,
-                              onFollowTap: () async {
-                                if (!ref
-                                    .read(authStateNotifierProvider)
-                                    .isAuthenticated) {
-                                  context.push(AppRoutes.login);
-                                  return;
-                                }
+          ? Center(child: Text(state.errorMessage ?? 'Profilo ne trovita'))
+          : CustomScrollView(
+              slivers: [
+                SliverPadding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  sliver: SliverToBoxAdapter(
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: ResponsiveLayout.contentMaxWidth,
+                        ),
+                        child: _ProfileHeader(
+                          profile: state.profile!,
+                          isFollowing: state.isFollowing,
+                          isOwnProfile: isOwnProfile,
+                          followLoading: state.isFollowLoading,
+                          onFollowTap: () async {
+                            if (!ref
+                                .read(authStateNotifierProvider)
+                                .isAuthenticated) {
+                              context.push(AppRoutes.login);
+                              return;
+                            }
 
-                                try {
-                                  await controller.toggleFollow();
-                                } on ProfileActionFailure catch (error) {
-                                  if (!context.mounted) return;
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(error.message),
-                                      backgroundColor: Colors.redAccent,
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
+                            try {
+                              await controller.toggleFollow();
+                            } on AppFailure catch (error) {
+                              if (!context.mounted) return;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(error.message),
+                                  backgroundColor: Colors.redAccent,
+                                ),
+                              );
+                            }
+                          },
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      16,
+                      horizontalPadding,
+                      8,
+                    ),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: ResponsiveLayout.contentMaxWidth,
+                        ),
+                        child: Text(
+                          '${state.posts.length} afiŝoj',
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withAlpha(150),
+                            fontSize: 13,
                           ),
                         ),
                       ),
                     ),
-                    SliverToBoxAdapter(
-                      child: Padding(
-                        padding: EdgeInsets.fromLTRB(
-                          horizontalPadding,
-                          16,
-                          horizontalPadding,
-                          8,
-                        ),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: ResponsiveLayout.contentMaxWidth,
-                            ),
+                  ),
+                ),
+                if (state.posts.isEmpty)
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding,
+                      ),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: ResponsiveLayout.contentMaxWidth,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
                             child: Text(
-                              '${state.posts.length} afisxoj',
+                              'Ankoraŭ ne estas afiŝoj',
                               style: TextStyle(
                                 color: colorScheme.onSurface.withAlpha(150),
-                                fontSize: 13,
                               ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    if (state.posts.isEmpty)
-                      SliverToBoxAdapter(
-                        child: Padding(
-                          padding:
-                              EdgeInsets.symmetric(horizontal: horizontalPadding),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(
-                                maxWidth: ResponsiveLayout.contentMaxWidth,
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(32),
-                                child: Text(
-                                  'Ankorau ne estas afisxoj',
-                                  style: TextStyle(
-                                    color: colorScheme.onSurface.withAlpha(150),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
+                  )
+                else
+                  SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (_, index) => Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
                         ),
-                      )
-                    else
-                      SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (_, index) => Padding(
-                            padding:
-                                EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: ResponsiveLayout.contentMaxWidth,
-                                ),
-                                child: PostCard(
-                                  key: ValueKey(state.posts[index].id),
-                                  post: state.posts[index],
-                                ),
-                              ),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: ResponsiveLayout.contentMaxWidth,
+                            ),
+                            child: PostCard(
+                              key: ValueKey(state.posts[index].id),
+                              post: state.posts[index],
                             ),
                           ),
-                          childCount: state.posts.length,
                         ),
                       ),
-                  ],
-                ),
+                      childCount: state.posts.length,
+                    ),
+                  ),
+              ],
+            ),
     );
   }
 }
@@ -226,7 +226,9 @@ class _ProfileHeader extends StatelessWidget {
                             ? const SizedBox(
                                 width: 16,
                                 height: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
                               )
                             : Text(isFollowing ? 'Malsekvu' : 'Sekvu'),
                       ),
@@ -249,7 +251,10 @@ class _ProfileHeader extends StatelessWidget {
           ),
           if (profile.bio?.isNotEmpty == true) ...[
             const SizedBox(height: 10),
-            Text(profile.bio!, style: const TextStyle(fontSize: 15, height: 1.4)),
+            Text(
+              profile.bio!,
+              style: const TextStyle(fontSize: 15, height: 1.4),
+            ),
           ],
           const SizedBox(height: 10),
           Chip(
@@ -264,7 +269,7 @@ class _ProfileHeader extends StatelessWidget {
             children: [
               _StatItem(count: profile.followingCount, label: 'Sekvitaj'),
               _StatItem(count: profile.followersCount, label: 'Sekvantoj'),
-              _StatItem(count: profile.postsCount, label: 'Afisxoj'),
+              _StatItem(count: profile.postsCount, label: 'Afiŝoj'),
             ],
           ),
         ],

@@ -57,7 +57,7 @@ class NotificationsScreen extends ConsumerWidget {
             TextButton(
               onPressed: () =>
                   ref.read(notificationsControllerProvider.notifier).load(),
-              child: const Text('Gxisdatigi'),
+              child: const Text('Ĝisdatigi'),
             ),
         ],
       ),
@@ -72,7 +72,9 @@ class NotificationsScreen extends ConsumerWidget {
                     Icon(
                       Icons.notifications_off_outlined,
                       size: 64,
-                      color: Theme.of(context).colorScheme.onSurface.withAlpha(60),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(60),
                     ),
                     const SizedBox(height: 16),
                     const Text('Ensalutu por vidi sciigojn'),
@@ -86,64 +88,64 @@ class NotificationsScreen extends ConsumerWidget {
               ),
             )
           : state.isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : state.notifications.isEmpty
-                  ? Center(
-                      child: ResponsiveContent(
-                        maxWidth: ResponsiveLayout.formMaxWidth,
-                        padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.notifications_none,
-                              size: 64,
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withAlpha(60),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Neniu sciigo ankorau',
-                              style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onSurface
-                                    .withAlpha(150),
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: () =>
-                          ref.read(notificationsControllerProvider.notifier).load(),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: ResponsiveLayout.contentMaxWidth,
-                          ),
-                          child: Padding(
-                            padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                            child: ListView.separated(
-                              itemCount: state.notifications.length,
-                              separatorBuilder: (_, _) => const Divider(height: 1),
-                              itemBuilder: (_, index) {
-                                final notification = state.notifications[index];
-                                return _NotificationTile(
-                                  notification: notification,
-                                  icon: _iconForType(notification.type),
-                                  color: _colorForType(notification.type),
-                                );
-                              },
-                            ),
-                          ),
-                        ),
+          ? const Center(child: CircularProgressIndicator())
+          : state.notifications.isEmpty
+          ? Center(
+              child: ResponsiveContent(
+                maxWidth: ResponsiveLayout.formMaxWidth,
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.notifications_none,
+                      size: 64,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.onSurface.withAlpha(60),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Neniu sciigo ankoraŭ',
+                      style: TextStyle(
+                        color: Theme.of(
+                          context,
+                        ).colorScheme.onSurface.withAlpha(150),
+                        fontSize: 16,
                       ),
                     ),
+                  ],
+                ),
+              ),
+            )
+          : RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(notificationsControllerProvider.notifier).load(),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    maxWidth: ResponsiveLayout.contentMaxWidth,
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                    ),
+                    child: ListView.separated(
+                      itemCount: state.notifications.length,
+                      separatorBuilder: (_, _) => const Divider(height: 1),
+                      itemBuilder: (_, index) {
+                        final notification = state.notifications[index];
+                        return _NotificationTile(
+                          notification: notification,
+                          icon: _iconForType(notification.type),
+                          color: _colorForType(notification.type),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
     );
   }
 }
@@ -162,10 +164,7 @@ class _NotificationTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 8,
-      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -188,19 +187,12 @@ class _NotificationTile extends StatelessWidget {
                   width: 2,
                 ),
               ),
-              child: Icon(
-                icon,
-                size: 10,
-                color: Colors.white,
-              ),
+              child: Icon(icon, size: 10, color: Colors.white),
             ),
           ),
         ],
       ),
-      title: Text(
-        notification.message,
-        style: const TextStyle(fontSize: 14),
-      ),
+      title: Text(notification.message, style: const TextStyle(fontSize: 14)),
       subtitle: Text(
         timeago.format(notification.createdAt, locale: 'es'),
         style: TextStyle(
@@ -215,7 +207,9 @@ class _NotificationTile extends StatelessWidget {
         if (notification.postId != null) {
           context.push('${AppRoutes.postDetailPrefix}/${notification.postId}');
         } else if (notification.actorUsername != null) {
-          context.push('${AppRoutes.profilePrefix}/${notification.actorUsername}');
+          context.push(
+            '${AppRoutes.profilePrefix}/${notification.actorUsername}',
+          );
         }
       },
     );

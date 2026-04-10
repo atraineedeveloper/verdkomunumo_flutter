@@ -128,14 +128,14 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   Text(
                     'Komunumo',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     state.filter == FeedFilter.following
-                        ? 'Vi vidas afisxojn de sekvataj uzantoj.'
-                        : 'Vi vidas la plej fresxajn afisxojn de la komunumo.',
+                        ? 'Vi vidas afiŝojn de sekvataj uzantoj.'
+                        : 'Vi vidas la plej freŝajn afiŝojn de la komunumo.',
                     style: TextStyle(
                       color: colorScheme.onSurface.withAlpha(150),
                       height: 1.4,
@@ -144,7 +144,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   const SizedBox(height: 12),
                   if (selectedCategory != null)
                     Chip(
-                      avatar: Icon(_iconForCategory(selectedCategory), size: 16),
+                      avatar: Icon(
+                        _iconForCategory(selectedCategory),
+                        size: 16,
+                      ),
                       label: Text(selectedCategory.name),
                     ),
                   const SizedBox(height: 12),
@@ -154,8 +157,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       onPressed: isLoggedIn
                           ? () => _openCompose(state.categories)
                           : () => context.push(AppRoutes.login),
-                      icon: Icon(isLoggedIn ? Icons.edit_outlined : Icons.login),
-                      label: Text(isLoggedIn ? 'Nova afisxo' : 'Ensalutu'),
+                      icon: Icon(
+                        isLoggedIn ? Icons.edit_outlined : Icons.login,
+                      ),
+                      label: Text(isLoggedIn ? 'Nova afiŝo' : 'Ensalutu'),
                     ),
                   ),
                 ],
@@ -173,15 +178,16 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     Text(
                       'Kategorioj',
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: state.categories.map((category) {
-                        final selected = state.selectedCategoryId == category.id;
+                        final selected =
+                            state.selectedCategoryId == category.id;
                         return FilterChip(
                           selected: selected,
                           onSelected: (_) => ref
@@ -250,8 +256,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             ),
         ],
         bottom: PreferredSize(
-          preferredSize:
-              Size.fromHeight(state.categories.isNotEmpty ? 104 : 56),
+          preferredSize: Size.fromHeight(
+            state.categories.isNotEmpty ? 104 : 56,
+          ),
           child: ResponsiveContent(
             maxWidth: contentMaxWidth,
             padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
@@ -260,25 +267,22 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 Row(
                   children: [
                     _FilterTab(
-                      label: 'Chiuj afisxoj',
+                      label: 'Ĉiuj afiŝoj',
                       selected: state.filter == FeedFilter.all,
                       onTap: () => ref
                           .read(feedControllerProvider.notifier)
                           .setFilter(FeedFilter.all),
                     ),
-                    _FilterTab(
-                      label: 'Sekvataj',
-                      selected: state.filter == FeedFilter.following,
-                      onTap: () {
-                        if (!isLoggedIn) {
-                          context.push(AppRoutes.login);
-                        } else {
+                    if (isLoggedIn)
+                      _FilterTab(
+                        label: 'Sekvataj',
+                        selected: state.filter == FeedFilter.following,
+                        onTap: () {
                           ref
                               .read(feedControllerProvider.notifier)
                               .setFilter(FeedFilter.following);
-                        }
-                      },
-                    ),
+                        },
+                      ),
                   ],
                 ),
                 if (state.categories.isNotEmpty)
@@ -288,7 +292,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(vertical: 8),
                       children: state.categories.map((category) {
-                        final selected = state.selectedCategoryId == category.id;
+                        final selected =
+                            state.selectedCategoryId == category.id;
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: FilterChip(
@@ -336,34 +341,30 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       body: state.isLoadingInitial
           ? const Center(child: CircularProgressIndicator())
           : useLandscapePanels
-              ? Row(
-                  children: [
-                    Expanded(
-                      child: RefreshIndicator(
-                        onRefresh: () =>
-                            ref.read(feedControllerProvider.notifier).refresh(),
-                        child: _buildFeedList(
-                          state,
-                          contentMaxWidth,
-                          horizontalPadding,
-                        ),
-                      ),
+          ? Row(
+              children: [
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () =>
+                        ref.read(feedControllerProvider.notifier).refresh(),
+                    child: _buildFeedList(
+                      state,
+                      contentMaxWidth,
+                      horizontalPadding,
                     ),
-                    _buildLandscapePanel(context, state, isLoggedIn),
-                  ],
-                )
-              : RefreshIndicator(
-                  onRefresh: () =>
-                      ref.read(feedControllerProvider.notifier).refresh(),
-                  child: _buildFeedList(
-                    state,
-                    contentMaxWidth,
-                    horizontalPadding,
                   ),
                 ),
+                _buildLandscapePanel(context, state, isLoggedIn),
+              ],
+            )
+          : RefreshIndicator(
+              onRefresh: () =>
+                  ref.read(feedControllerProvider.notifier).refresh(),
+              child: _buildFeedList(state, contentMaxWidth, horizontalPadding),
+            ),
       floatingActionButton: FloatingActionButton(
         onPressed: () => _openCompose(state.categories),
-        tooltip: 'Nova afisxo',
+        tooltip: 'Nova afiŝo',
         child: const Icon(Icons.edit_outlined),
       ),
       floatingActionButtonLocation: ResponsiveLayout.isMobile(context)
@@ -446,18 +447,15 @@ class _EmptyState extends StatelessWidget {
   final FeedFilter filter;
   final bool hasCategory;
 
-  const _EmptyState({
-    required this.filter,
-    required this.hasCategory,
-  });
+  const _EmptyState({required this.filter, required this.hasCategory});
 
   @override
   Widget build(BuildContext context) {
     final message = hasCategory
-        ? 'Neniu afisxo en tiu chi kategorio'
+        ? 'Neniu afiŝo en tiu ĉi kategorio'
         : filter == FeedFilter.following
-            ? 'Sekvu uzantojn por vidi iliajn afisxojn'
-            : 'Ankorau ne estas afisxoj';
+        ? 'Sekvu uzantojn por vidi iliajn afiŝojn'
+        : 'Ankoraŭ ne estas afiŝoj';
 
     return Center(
       child: Padding(
@@ -469,8 +467,8 @@ class _EmptyState extends StatelessWidget {
               hasCategory
                   ? Icons.category_outlined
                   : filter == FeedFilter.following
-                      ? Icons.people_outline
-                      : Icons.article_outlined,
+                  ? Icons.people_outline
+                  : Icons.article_outlined,
               size: 64,
               color: Theme.of(context).colorScheme.onSurface.withAlpha(60),
             ),

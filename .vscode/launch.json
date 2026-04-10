@@ -2,6 +2,26 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Verdkomunumo Flutter (Android)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "android",
+      "toolArgs": [
+        "--dart-define-from-file=.env.flutter"
+      ]
+    },
+    {
+      "name": "Verdkomunumo Flutter (Windows)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "deviceId": "windows",
+      "toolArgs": [
+        "--dart-define-from-file=.env.flutter"
+      ]
+    },
+    {
       "name": "Verdkomunumo Flutter (Linux)",
       "request": "launch",
       "type": "dart",
@@ -33,12 +53,12 @@
       ]
     },
     {
-      "name": "Verdkomunumo Flutter (Linux Profile)",
+      "name": "Verdkomunumo Flutter (Android Profile)",
       "request": "launch",
       "type": "dart",
       "program": "lib/main.dart",
       "flutterMode": "profile",
-      "deviceId": "linux",
+      "deviceId": "android",
       "toolArgs": [
         "--dart-define-from-file=.env.flutter"
       ]

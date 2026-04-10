@@ -11,12 +11,22 @@ class MainShell extends ConsumerWidget {
 
   const MainShell({super.key, required this.child});
 
-  int _locationToIndex(String location) {
+  int _loggedInLocationToIndex(String location) {
     if (location.startsWith(AppRoutes.feed)) return 0;
     if (location.startsWith(AppRoutes.search)) return 1;
     if (location.startsWith(AppRoutes.notifications)) return 2;
     if (location.startsWith(AppRoutes.profilePrefix)) return 3;
     if (location.startsWith(AppRoutes.settings)) return 4;
+    return 0;
+  }
+
+  int _guestLocationToIndex(String location) {
+    if (location.startsWith(AppRoutes.feed)) return 0;
+    if (location.startsWith(AppRoutes.search)) return 1;
+    if (location.startsWith(AppRoutes.login) ||
+        location.startsWith(AppRoutes.register)) {
+      return 2;
+    }
     return 0;
   }
 
@@ -59,6 +69,20 @@ class MainShell extends ConsumerWidget {
     bool isLoggedIn,
     AsyncValue<String?> currentUsernameAsync,
   ) async {
+    if (!isLoggedIn) {
+      switch (index) {
+        case 0:
+          context.go(AppRoutes.feed);
+          return;
+        case 1:
+          context.go(AppRoutes.search);
+          return;
+        case 2:
+          context.go(AppRoutes.login);
+          return;
+      }
+    }
+
     switch (index) {
       case 0:
         context.go(AppRoutes.feed);
@@ -82,8 +106,10 @@ class MainShell extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final location = GoRouterState.of(context).matchedLocation;
-    final currentIndex = _locationToIndex(location);
     final isLoggedIn = ref.watch(authStateNotifierProvider).isAuthenticated;
+    final currentIndex = isLoggedIn
+        ? _loggedInLocationToIndex(location)
+        : _guestLocationToIndex(location);
     final currentUsernameAsync = ref.watch(currentUsernameProvider);
     final useRailNavigation = ResponsiveLayout.useRailNavigation(context);
 
@@ -127,33 +153,51 @@ class MainShell extends ConsumerWidget {
                       color: Theme.of(context).colorScheme.primary,
                     ),
                   ),
-                  destinations: const [
-                    NavigationRailDestination(
-                      icon: Icon(Icons.home_outlined),
-                      selectedIcon: Icon(Icons.home),
-                      label: Text('Fonto'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.search),
-                      selectedIcon: Icon(Icons.search),
-                      label: Text('Serchi'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.notifications_outlined),
-                      selectedIcon: Icon(Icons.notifications),
-                      label: Text('Sciigoj'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.person_outline),
-                      selectedIcon: Icon(Icons.person),
-                      label: Text('Profilo'),
-                    ),
-                    NavigationRailDestination(
-                      icon: Icon(Icons.settings_outlined),
-                      selectedIcon: Icon(Icons.settings),
-                      label: Text('Agordoj'),
-                    ),
-                  ],
+                  destinations: isLoggedIn
+                      ? const [
+                          NavigationRailDestination(
+                            icon: Icon(Icons.home_outlined),
+                            selectedIcon: Icon(Icons.home),
+                            label: Text('Fonto'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.search),
+                            selectedIcon: Icon(Icons.search),
+                            label: Text('Serĉi'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.notifications_outlined),
+                            selectedIcon: Icon(Icons.notifications),
+                            label: Text('Sciigoj'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.person_outline),
+                            selectedIcon: Icon(Icons.person),
+                            label: Text('Profilo'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.settings_outlined),
+                            selectedIcon: Icon(Icons.settings),
+                            label: Text('Agordoj'),
+                          ),
+                        ]
+                      : const [
+                          NavigationRailDestination(
+                            icon: Icon(Icons.home_outlined),
+                            selectedIcon: Icon(Icons.home),
+                            label: Text('Fonto'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.search),
+                            selectedIcon: Icon(Icons.search),
+                            label: Text('Serĉi'),
+                          ),
+                          NavigationRailDestination(
+                            icon: Icon(Icons.login_outlined),
+                            selectedIcon: Icon(Icons.login),
+                            label: Text('Ensalutu'),
+                          ),
+                        ],
                 ),
                 VerticalDivider(
                   width: 1,
@@ -173,33 +217,51 @@ class MainShell extends ConsumerWidget {
                 isLoggedIn,
                 currentUsernameAsync,
               ),
-              items: const [
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.home_outlined),
-                  activeIcon: Icon(Icons.home),
-                  label: 'Fonto',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.search),
-                  activeIcon: Icon(Icons.search),
-                  label: 'Serchi',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.notifications_outlined),
-                  activeIcon: Icon(Icons.notifications),
-                  label: 'Sciigoj',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.person_outline),
-                  activeIcon: Icon(Icons.person),
-                  label: 'Profilo',
-                ),
-                BottomNavigationBarItem(
-                  icon: Icon(Icons.settings_outlined),
-                  activeIcon: Icon(Icons.settings),
-                  label: 'Agordoj',
-                ),
-              ],
+              items: isLoggedIn
+                  ? const [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.home_outlined),
+                        activeIcon: Icon(Icons.home),
+                        label: 'Fonto',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.search),
+                        activeIcon: Icon(Icons.search),
+                        label: 'Serĉi',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.notifications_outlined),
+                        activeIcon: Icon(Icons.notifications),
+                        label: 'Sciigoj',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.person_outline),
+                        activeIcon: Icon(Icons.person),
+                        label: 'Profilo',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.settings_outlined),
+                        activeIcon: Icon(Icons.settings),
+                        label: 'Agordoj',
+                      ),
+                    ]
+                  : const [
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.home_outlined),
+                        activeIcon: Icon(Icons.home),
+                        label: 'Fonto',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.search),
+                        activeIcon: Icon(Icons.search),
+                        label: 'Serĉi',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.login_outlined),
+                        activeIcon: Icon(Icons.login),
+                        label: 'Ensalutu',
+                      ),
+                    ],
             )
           : null,
     );

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../data/supabase_post_detail_repository.dart';
 import '../domain/post_detail_repository.dart';
 import 'post_detail_state.dart';
@@ -9,7 +10,7 @@ class PostDetailController extends StateNotifier<PostDetailState> {
   final String _postId;
 
   PostDetailController(this._repository, this._postId)
-      : super(PostDetailState.initial()) {
+    : super(PostDetailState.initial()) {
     load();
   }
 
@@ -23,12 +24,15 @@ class PostDetailController extends StateNotifier<PostDetailState> {
         isLoading: false,
         errorMessage: null,
       );
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isLoading: false,
         post: null,
         comments: const [],
-        errorMessage: 'Ne eblis sxargi la afisxon.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis ŝargi la afiŝon.',
+        ),
       );
     }
   }
@@ -48,10 +52,13 @@ class PostDetailController extends StateNotifier<PostDetailState> {
     } on PostCommentFailure {
       state = state.copyWith(isSubmitting: false);
       rethrow;
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: 'Ne eblis sendi la komenton.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis sendi la komenton.',
+        ),
       );
     }
   }

@@ -4,11 +4,12 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../app/routing/app_routes.dart';
+import '../../core/error/app_failure.dart';
 import '../../core/responsive.dart';
 import '../../models/comment.dart';
 import '../../models/post.dart';
 import '../../widgets/user_avatar.dart';
-import '../post/data/supabase_post_detail_repository.dart';
+import '../auth/application/auth_providers.dart';
 import 'application/post_detail_providers.dart';
 
 class PostDetailScreen extends ConsumerStatefulWidget {
@@ -35,7 +36,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
           .read(postDetailControllerProvider(widget.postId).notifier)
           .submitComment(_commentController.text);
       _commentController.clear();
-    } on PostCommentFailure catch (error) {
+    } on AppFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -49,123 +50,146 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(postDetailControllerProvider(widget.postId));
+    final isLoggedIn = ref.watch(authStateNotifierProvider).isAuthenticated;
     final colorScheme = Theme.of(context).colorScheme;
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Afisxo')),
+      appBar: AppBar(title: const Text('Afiŝo')),
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.post == null
-              ? Center(
-                  child: Text(state.errorMessage ?? 'Afisxo ne trovita'),
-                )
-              : Column(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: ResponsiveLayout.detailMaxWidth,
-                          ),
-                          child: ListView(
-                            padding: EdgeInsets.fromLTRB(
-                              horizontalPadding,
-                              16,
-                              horizontalPadding,
-                              16,
-                            ),
-                            children: [
-                              _PostBody(post: state.post!),
-                              const Divider(height: 32),
-                              Text(
-                                '${state.comments.length} komentoj',
-                                style: TextStyle(
-                                  color: colorScheme.onSurface.withAlpha(150),
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ...state.comments
-                                  .map((comment) => _CommentTile(comment: comment)),
-                            ],
-                          ),
+          ? Center(child: Text(state.errorMessage ?? 'Afiŝo ne trovita'))
+          : Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: ResponsiveLayout.detailMaxWidth,
+                      ),
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          16,
+                          horizontalPadding,
+                          16,
                         ),
+                        children: [
+                          _PostBody(post: state.post!),
+                          const Divider(height: 32),
+                          Text(
+                            '${state.comments.length} komentoj',
+                            style: TextStyle(
+                              color: colorScheme.onSurface.withAlpha(150),
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ...state.comments.map(
+                            (comment) => _CommentTile(comment: comment),
+                          ),
+                        ],
                       ),
                     ),
-                    Material(
-                      color: colorScheme.surface,
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: ResponsiveLayout.detailMaxWidth,
+                  ),
+                ),
+                Material(
+                  color: colorScheme.surface,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: ResponsiveLayout.detailMaxWidth,
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.only(
+                          left: horizontalPadding,
+                          right: horizontalPadding,
+                          top: 12,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          border: Border(
+                            top: BorderSide(
+                              color: colorScheme.outline,
+                              width: 0.5,
+                            ),
                           ),
-                          child: Container(
-                            padding: EdgeInsets.only(
-                              left: horizontalPadding,
-                              right: horizontalPadding,
-                              top: 12,
-                              bottom:
-                                  MediaQuery.of(context).viewInsets.bottom + 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              border: Border(
-                                top: BorderSide(
-                                  color: colorScheme.outline,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Expanded(
-                                  child: TextField(
-                                    controller: _commentController,
-                                    decoration: InputDecoration(
-                                      hintText: 'Skribu komenton...',
-                                      isDense: true,
-                                      contentPadding:
-                                          const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 10,
+                        ),
+                        child: isLoggedIn
+                            ? Row(
+                                children: [
+                                  Expanded(
+                                    child: TextField(
+                                      controller: _commentController,
+                                      decoration: InputDecoration(
+                                        hintText: 'Skribu komenton...',
+                                        isDense: true,
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 10,
+                                            ),
+                                        border: OutlineInputBorder(
+                                          borderRadius: BorderRadius.circular(
+                                            24,
+                                          ),
+                                        ),
                                       ),
-                                      border: OutlineInputBorder(
-                                        borderRadius: BorderRadius.circular(24),
+                                      maxLines: null,
+                                      textInputAction: TextInputAction.send,
+                                      onSubmitted: (_) => _submitComment(),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  IconButton.filled(
+                                    onPressed: state.isSubmitting
+                                        ? null
+                                        : _submitComment,
+                                    icon: state.isSubmitting
+                                        ? const SizedBox(
+                                            width: 18,
+                                            height: 18,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              color: Colors.black,
+                                            ),
+                                          )
+                                        : const Icon(Icons.send),
+                                    style: IconButton.styleFrom(
+                                      backgroundColor: colorScheme.primary,
+                                      foregroundColor: Colors.black,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Ensalutu por komenti en ĉi tiu afiŝo.',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface.withAlpha(
+                                          150,
+                                        ),
                                       ),
                                     ),
-                                    maxLines: null,
-                                    textInputAction: TextInputAction.send,
-                                    onSubmitted: (_) => _submitComment(),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton.filled(
-                                  onPressed:
-                                      state.isSubmitting ? null : _submitComment,
-                                  icon: state.isSubmitting
-                                      ? const SizedBox(
-                                          width: 18,
-                                          height: 18,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            color: Colors.black,
-                                          ),
-                                        )
-                                      : const Icon(Icons.send),
-                                  style: IconButton.styleFrom(
-                                    backgroundColor: colorScheme.primary,
-                                    foregroundColor: Colors.black,
+                                  const SizedBox(width: 12),
+                                  FilledButton(
+                                    onPressed: () =>
+                                        context.push(AppRoutes.login),
+                                    child: const Text('Ensalutu'),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
+                                ],
+                              ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
     );
   }
 }

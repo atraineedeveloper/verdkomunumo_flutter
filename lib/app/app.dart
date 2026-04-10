@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/constants.dart';
 import '../core/theme.dart';
 import '../core/theme_controller.dart';
+import 'push_notification_bootstrap.dart';
 import 'routing/app_router.dart';
 
 class VerdkomunumoApp extends ConsumerWidget {
@@ -20,13 +21,15 @@ class VerdkomunumoApp extends ConsumerWidget {
       child: AnimatedBuilder(
         animation: themeController,
         builder: (context, _) {
-          return MaterialApp.router(
-            title: AppConstants.appName,
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: themeController.themeMode,
-            routerConfig: router,
+          return PushNotificationBootstrap(
+            child: MaterialApp.router(
+              title: AppConstants.appName,
+              debugShowCheckedModeBanner: false,
+              theme: AppTheme.lightTheme,
+              darkTheme: AppTheme.darkTheme,
+              themeMode: themeController.themeMode,
+              routerConfig: router,
+            ),
           );
         },
       ),

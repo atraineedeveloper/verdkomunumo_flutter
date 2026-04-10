@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../../../core/error/app_failure.dart';
+import '../../../core/error/supabase_failure_mapper.dart';
 import '../domain/auth_failure.dart';
 import '../domain/auth_repository.dart';
 
@@ -17,19 +19,23 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     try {
       await _client.auth.signInWithPassword(
         email: email.trim(),
         password: password,
       );
-    } on AuthException catch (error) {
-      throw AuthFailure(error.message);
-    } catch (_) {
-      throw const AuthFailure('Unable to sign in right now.');
+    } catch (error) {
+      final failure = mapSupabaseFailure(
+        error,
+        fallbackMessage: 'Unable to sign in right now.',
+        defaultKind: AppFailureKind.auth,
+      );
+      throw AuthFailure(
+        failure.message,
+        kind: failure.kind,
+        cause: failure.cause,
+      );
     }
   }
 
@@ -44,10 +50,7 @@ class SupabaseAuthRepository implements AuthRepository {
       final response = await _client.auth.signUp(
         email: email.trim(),
         password: password,
-        data: {
-          'username': username,
-          'esperanto_level': esperantoLevel,
-        },
+        data: {'username': username, 'esperanto_level': esperantoLevel},
       );
 
       final user = response.user;
@@ -62,10 +65,17 @@ class SupabaseAuthRepository implements AuthRepository {
       });
     } on AuthFailure {
       rethrow;
-    } on AuthException catch (error) {
-      throw AuthFailure(error.message);
-    } catch (_) {
-      throw const AuthFailure('Unable to create the account right now.');
+    } catch (error) {
+      final failure = mapSupabaseFailure(
+        error,
+        fallbackMessage: 'Unable to create the account right now.',
+        defaultKind: AppFailureKind.auth,
+      );
+      throw AuthFailure(
+        failure.message,
+        kind: failure.kind,
+        cause: failure.cause,
+      );
     }
   }
 
@@ -73,10 +83,17 @@ class SupabaseAuthRepository implements AuthRepository {
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
-    } on AuthException catch (error) {
-      throw AuthFailure(error.message);
-    } catch (_) {
-      throw const AuthFailure('Unable to sign out right now.');
+    } catch (error) {
+      final failure = mapSupabaseFailure(
+        error,
+        fallbackMessage: 'Unable to sign out right now.',
+        defaultKind: AppFailureKind.auth,
+      );
+      throw AuthFailure(
+        failure.message,
+        kind: failure.kind,
+        cause: failure.cause,
+      );
     }
   }
 }

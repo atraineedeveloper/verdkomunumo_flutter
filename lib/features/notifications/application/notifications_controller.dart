@@ -9,7 +9,7 @@ class NotificationsController extends StateNotifier<NotificationsState> {
   final String? _userId;
 
   NotificationsController(this._repository, this._userId)
-      : super(NotificationsState.initial()) {
+    : super(NotificationsState.initial()) {
     load();
   }
 
@@ -22,7 +22,9 @@ class NotificationsController extends StateNotifier<NotificationsState> {
     state = state.copyWith(isLoading: true, errorMessage: null);
     try {
       final notifications = await _repository.fetchNotifications(_userId);
-      final hasUnread = notifications.any((notification) => !notification.isRead);
+      final hasUnread = notifications.any(
+        (notification) => !notification.isRead,
+      );
 
       state = state.copyWith(
         notifications: notifications,
@@ -38,7 +40,7 @@ class NotificationsController extends StateNotifier<NotificationsState> {
     } catch (_) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Ne eblis sxargi la sciigojn.',
+        errorMessage: 'Ne eblis ŝargi la sciigojn.',
       );
     }
   }
@@ -66,7 +68,7 @@ class NotificationsController extends StateNotifier<NotificationsState> {
     } catch (_) {
       state = state.copyWith(
         isMarkingRead: false,
-        errorMessage: 'Ne eblis marki la sciigojn kiel legitaj.',
+        errorMessage: 'Ne eblis marki la sciigojn kiel legitajn.',
       );
     }
   }

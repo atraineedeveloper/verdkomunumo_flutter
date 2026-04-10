@@ -42,13 +42,13 @@ class AppNotification {
   String get message {
     switch (type) {
       case 'like':
-        return '${actorUsername ?? 'Iu'} sxatis vian afisxon';
+        return '${actorUsername ?? 'Iu'} ŝatis vian afiŝon';
       case 'comment':
-        return '${actorUsername ?? 'Iu'} komentis vian afisxon';
+        return '${actorUsername ?? 'Iu'} komentis vian afiŝon';
       case 'follow':
         return '${actorUsername ?? 'Iu'} eksekvatas vin';
       case 'mention':
-        return '${actorUsername ?? 'Iu'} menciis vin en afisxo';
+        return '${actorUsername ?? 'Iu'} menciis vin en afiŝo';
       default:
         return 'Nova sciigo';
     }

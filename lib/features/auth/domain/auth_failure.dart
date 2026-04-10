@@ -1,8 +1,9 @@
-class AuthFailure implements Exception {
-  final String message;
+import '../../../core/error/app_failure.dart';
 
-  const AuthFailure(this.message);
-
-  @override
-  String toString() => message;
+class AuthFailure extends AppFailure {
+  const AuthFailure(
+    super.message, {
+    super.kind = AppFailureKind.auth,
+    super.cause,
+  });
 }

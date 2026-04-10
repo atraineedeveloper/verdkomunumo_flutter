@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../../../models/profile.dart';
 import '../data/supabase_profile_repository.dart';
 import '../domain/profile_repository.dart';
@@ -10,7 +11,7 @@ class ProfileController extends StateNotifier<ProfileState> {
   final String _username;
 
   ProfileController(this._repository, this._username)
-      : super(ProfileState.initial()) {
+    : super(ProfileState.initial()) {
     load();
   }
 
@@ -25,12 +26,15 @@ class ProfileController extends StateNotifier<ProfileState> {
         isFollowing: result.isFollowing,
         errorMessage: null,
       );
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isLoading: false,
         profile: null,
         posts: const [],
-        errorMessage: 'Ne eblis sxargi la profilon.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis ŝargi la profilon.',
+        ),
       );
     }
   }
@@ -56,10 +60,13 @@ class ProfileController extends StateNotifier<ProfileState> {
         errorMessage: error.message,
       );
       rethrow;
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isFollowLoading: false,
-        errorMessage: 'Ne eblis sxangxi la sekvadon.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis sxangxi la sekvadon.',
+        ),
       );
     }
   }

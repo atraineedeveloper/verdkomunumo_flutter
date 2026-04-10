@@ -51,6 +51,16 @@ flutter run `
   --dart-define=SUPABASE_ANON_KEY=...
 ```
 
+For local VS Code run and debug, this repository is configured to read credentials from `.env.flutter` through `--dart-define-from-file`.
+
+1. Open [.env.flutter](/c:/Users/DELL/DevProjects/verdkomunumo_flutter/.env.flutter)
+2. Set:
+   `SUPABASE_URL=...`
+   `SUPABASE_ANON_KEY=...`
+3. Run any launch profile from [.vscode/launch.json](/c:/Users/DELL/DevProjects/verdkomunumo_flutter/.vscode/launch.json)
+
+An example file is available at [.env.flutter.example](/c:/Users/DELL/DevProjects/verdkomunumo_flutter/.env.flutter.example).
+
 ## Validation
 
 - `flutter analyze`

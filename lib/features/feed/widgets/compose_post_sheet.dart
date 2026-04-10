@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/constants.dart';
+import '../../../core/error/app_failure.dart';
 import '../application/feed_providers.dart';
-import '../data/supabase_feed_repository.dart';
 import '../domain/feed_category.dart';
 
 class ComposePostSheet extends ConsumerStatefulWidget {
@@ -32,21 +32,22 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(feedControllerProvider.notifier).createPost(
-            content: content,
-            categoryId: _selectedCategoryId,
-          );
+      await ref
+          .read(feedControllerProvider.notifier)
+          .createPost(content: content, categoryId: _selectedCategoryId);
       if (mounted) Navigator.of(context).pop();
-    } on PostCreationFailure catch (error) {
+    } on AppFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(error.message), backgroundColor: Colors.red),
       );
-    } catch (_) {
+    } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Ne eblis krei la afisxon.'),
+        SnackBar(
+          content: Text(
+            failureMessageOf(error, fallback: 'Ne eblis krei la afiŝon.'),
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -75,11 +76,10 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Nova afisxo',
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium
-                    ?.copyWith(fontWeight: FontWeight.bold),
+                'Nova afiŝo',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
               ),
               TextButton.icon(
                 onPressed: _loading ? null : _submit,
@@ -120,8 +120,10 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
                   Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: ChoiceChip(
-                      label:
-                          const Text('Neniu', style: TextStyle(fontSize: 12)),
+                      label: const Text(
+                        'Neniu',
+                        style: TextStyle(fontSize: 12),
+                      ),
                       selected: _selectedCategoryId == null,
                       onSelected: (_) =>
                           setState(() => _selectedCategoryId = null),
@@ -139,8 +141,9 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
                           category.name,
                           style: TextStyle(
                             fontSize: 12,
-                            color:
-                                selected ? Colors.black : colorScheme.onSurface,
+                            color: selected
+                                ? Colors.black
+                                : colorScheme.onSurface,
                           ),
                         ),
                         selected: selected,

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../../../models/profile.dart';
 import '../domain/settings_repository.dart';
 import 'settings_state.dart';
@@ -9,13 +10,17 @@ class SettingsController extends StateNotifier<SettingsState> {
   final String? _userId;
 
   SettingsController(this._repository, this._userId)
-      : super(SettingsState.initial()) {
+    : super(SettingsState.initial()) {
     load();
   }
 
   Future<void> load() async {
     if (_userId == null) {
-      state = state.copyWith(isLoading: false, profile: null, errorMessage: null);
+      state = state.copyWith(
+        isLoading: false,
+        profile: null,
+        errorMessage: null,
+      );
       return;
     }
 
@@ -27,10 +32,13 @@ class SettingsController extends StateNotifier<SettingsState> {
         isLoading: false,
         errorMessage: null,
       );
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isLoading: false,
-        errorMessage: 'Ne eblis sxargi la profilon.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis ŝargi la profilon.',
+        ),
       );
     }
   }
@@ -54,10 +62,13 @@ class SettingsController extends StateNotifier<SettingsState> {
         isSaving: false,
         errorMessage: null,
       );
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isSaving: false,
-        errorMessage: 'Ne eblis konservi la profilon.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis konservi la profilon.',
+        ),
       );
       rethrow;
     }

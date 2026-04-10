@@ -75,7 +75,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
             controller: _searchController,
             autofocus: false,
             decoration: InputDecoration(
-              hintText: 'Serchu afisxojn au uzantojn...',
+              hintText: 'Serĉu afiŝojn aŭ uzantojn...',
               prefixIcon: const Icon(Icons.search, size: 20),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
@@ -109,8 +109,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
           tabs: [
             Tab(
               text: state.query.isNotEmpty
-                  ? 'Afisxoj (${state.posts.length})'
-                  : 'Afisxoj',
+                  ? 'Afiŝoj (${state.posts.length})'
+                  : 'Afiŝoj',
             ),
             Tab(
               text: state.query.isNotEmpty
@@ -123,44 +123,44 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.query.isEmpty
-              ? const _EmptySearch()
-              : Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      maxWidth: ResponsiveLayout.contentMaxWidth,
-                    ),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                      child: TabBarView(
-                        controller: _tabController,
-                        children: [
-                          state.posts.isEmpty
-                              ? _NoResults(
-                                  query: state.query,
-                                  type: _SearchTab.posts,
-                                )
-                              : ListView.builder(
-                                  itemCount: state.posts.length,
-                                  itemBuilder: (_, index) => PostCard(
-                                    key: ValueKey(state.posts[index].id),
-                                    post: state.posts[index],
-                                  ),
-                                ),
-                          state.users.isEmpty
-                              ? _NoResults(
-                                  query: state.query,
-                                  type: _SearchTab.users,
-                                )
-                              : ListView.builder(
-                                  itemCount: state.users.length,
-                                  itemBuilder: (_, index) =>
-                                      _UserTile(profile: state.users[index]),
-                                ),
-                        ],
-                      ),
-                    ),
+          ? const _EmptySearch()
+          : Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: ResponsiveLayout.contentMaxWidth,
+                ),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      state.posts.isEmpty
+                          ? _NoResults(
+                              query: state.query,
+                              type: _SearchTab.posts,
+                            )
+                          : ListView.builder(
+                              itemCount: state.posts.length,
+                              itemBuilder: (_, index) => PostCard(
+                                key: ValueKey(state.posts[index].id),
+                                post: state.posts[index],
+                              ),
+                            ),
+                      state.users.isEmpty
+                          ? _NoResults(
+                              query: state.query,
+                              type: _SearchTab.users,
+                            )
+                          : ListView.builder(
+                              itemCount: state.users.length,
+                              itemBuilder: (_, index) =>
+                                  _UserTile(profile: state.users[index]),
+                            ),
+                    ],
                   ),
                 ),
+              ),
+            ),
     );
   }
 }
@@ -183,7 +183,7 @@ class _EmptySearch extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(
-              'Serchu afisxojn au uzantojn',
+              'Serĉu afiŝojn aŭ uzantojn',
               style: TextStyle(
                 color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
                 fontSize: 16,
@@ -200,10 +200,7 @@ class _NoResults extends StatelessWidget {
   final String query;
   final _SearchTab type;
 
-  const _NoResults({
-    required this.query,
-    required this.type,
-  });
+  const _NoResults({required this.query, required this.type});
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +208,7 @@ class _NoResults extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Text(
-          'Neniu ${type == _SearchTab.posts ? 'afisxo' : 'uzanto'} trovita por "$query"',
+          'Neniu ${type == _SearchTab.posts ? 'afiŝo' : 'uzanto'} trovita por "$query"',
           textAlign: TextAlign.center,
           style: TextStyle(
             color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
@@ -255,7 +252,8 @@ class _UserTile extends StatelessWidget {
           color: Theme.of(context).colorScheme.onSurface.withAlpha(120),
         ),
       ),
-      onTap: () => context.push('${AppRoutes.profilePrefix}/${profile.username}'),
+      onTap: () =>
+          context.push('${AppRoutes.profilePrefix}/${profile.username}'),
     );
   }
 }

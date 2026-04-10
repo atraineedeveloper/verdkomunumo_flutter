@@ -38,7 +38,7 @@ class PostCard extends ConsumerWidget {
       if (!success && context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Ne eblis gxisdatigi la sxaton.'),
+            content: Text('Ne eblis ĝisdatigi la ŝaton.'),
             backgroundColor: Colors.redAccent,
           ),
         );
@@ -63,7 +63,9 @@ class PostCard extends ConsumerWidget {
                 GestureDetector(
                   onTap: () {
                     if (author != null) {
-                      context.push('${AppRoutes.profilePrefix}/${author.username}');
+                      context.push(
+                        '${AppRoutes.profilePrefix}/${author.username}',
+                      );
                     }
                   },
                   child: UserAvatar(
@@ -119,7 +121,10 @@ class PostCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 12),
-            Text(post.content, style: const TextStyle(fontSize: 15, height: 1.4)),
+            Text(
+              post.content,
+              style: const TextStyle(fontSize: 15, height: 1.4),
+            ),
             if (post.imageUrls.isNotEmpty) ...[
               const SizedBox(height: 12),
               ClipRRect(
@@ -203,10 +208,7 @@ class _ActionButton extends StatelessWidget {
                 )
               : Icon(icon, size: 20, color: color ?? muted),
           const SizedBox(width: 4),
-          Text(
-            '$count',
-            style: TextStyle(color: color ?? muted, fontSize: 13),
-          ),
+          Text('$count', style: TextStyle(color: color ?? muted, fontSize: 13)),
         ],
       ),
     );

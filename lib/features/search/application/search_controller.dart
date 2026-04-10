@@ -29,11 +29,7 @@ class SearchController extends StateNotifier<SearchState> {
       return;
     }
 
-    state = state.copyWith(
-      query: query,
-      isLoading: true,
-      errorMessage: null,
-    );
+    state = state.copyWith(query: query, isLoading: true, errorMessage: null);
 
     try {
       final results = await _repository.search(query);
@@ -50,7 +46,7 @@ class SearchController extends StateNotifier<SearchState> {
       state = state.copyWith(
         isLoading: false,
         query: query,
-        errorMessage: 'Ne eblis sxargi la serchrezultojn.',
+        errorMessage: 'Ne eblis ŝargi la serĉrezultojn.',
       );
     }
   }

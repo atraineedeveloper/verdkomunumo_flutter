@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/error/app_failure.dart';
 import '../domain/feed_filter.dart';
 import '../domain/feed_repository.dart';
 import 'feed_state.dart';
@@ -12,10 +13,7 @@ class FeedController extends StateNotifier<FeedState> {
 
   Future<void> initialize() async {
     if (state.initialized) return;
-    await Future.wait([
-      _loadCategories(),
-      refresh(),
-    ]);
+    await Future.wait([_loadCategories(), refresh()]);
   }
 
   Future<void> refresh() async {
@@ -44,11 +42,14 @@ class FeedController extends StateNotifier<FeedState> {
         page: 1,
         errorMessage: null,
       );
-    } catch (_) {
+    } catch (error) {
       state = state.copyWith(
         isLoadingInitial: false,
         initialized: true,
-        errorMessage: 'Ne eblis sxargi la feed-on.',
+        errorMessage: failureMessageOf(
+          error,
+          fallback: 'Ne eblis ŝargi la fluon.',
+        ),
       );
     }
   }

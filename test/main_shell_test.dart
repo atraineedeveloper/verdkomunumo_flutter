@@ -89,4 +89,18 @@ void main() {
     expect(find.byType(NavigationRail), findsOneWidget);
     expect(find.byType(BottomNavigationBar), findsNothing);
   });
+
+  testWidgets('guest navigation only exposes public destinations', (
+    tester,
+  ) async {
+    await tester.pumpWidget(buildShell(const Size(390, 844)));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Fonto'), findsOneWidget);
+    expect(find.text('Serĉi'), findsOneWidget);
+    expect(find.text('Ensalutu'), findsAtLeastNWidgets(1));
+    expect(find.text('Sciigoj'), findsNothing);
+    expect(find.text('Profilo'), findsNothing);
+    expect(find.text('Agordoj'), findsNothing);
+  });
 }

@@ -12,10 +12,10 @@ void main() {
       createdAt: DateTime(2026, 1, 1),
     );
 
-    expect(notification.message, 'lina sxatis vian afisxon');
+    expect(notification.message, 'lina ŝatis vian afiŝon');
     expect(
       notification.copyWith(type: 'comment').message,
-      'lina komentis vian afisxon',
+      'lina komentis vian afiŝon',
     );
     expect(
       notification.copyWith(type: 'follow').message,
@@ -23,7 +23,7 @@ void main() {
     );
     expect(
       notification.copyWith(type: 'mention').message,
-      'lina menciis vin en afisxo',
+      'lina menciis vin en afiŝo',
     );
     expect(notification.copyWith(type: 'unknown').message, 'Nova sciigo');
   });
