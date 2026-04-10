@@ -1,0 +1,3 @@
+ALTER TABLE public.posts
+  ADD COLUMN IF NOT EXISTS quoted_post_id UUID REFERENCES public.posts(id) ON DELETE SET NULL,
+  ADD COLUMN IF NOT EXISTS link_preview JSONB;

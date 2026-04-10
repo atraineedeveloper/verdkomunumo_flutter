@@ -22,6 +22,9 @@ For a mature CI setup, the repository should require:
 - `flutter test`
 - formatting validation
 - any future architecture or import boundary checks
+- migration linting (idempotency + RLS)
+- database contract review for schema changes
+- `supabase test db` for schema or policy changes when available
 
 If a check cannot run in the current environment:
 
