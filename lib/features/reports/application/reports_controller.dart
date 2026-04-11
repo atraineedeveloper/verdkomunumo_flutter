@@ -50,5 +50,4 @@ class ReportsController extends StateNotifier<AsyncValue<void>> {
       throw state.error!;
     }
   }
-
 }

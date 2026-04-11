@@ -131,9 +131,7 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CupertinoActivityIndicator(
-                                color: Colors.black,
-                              ),
+                      child: CupertinoActivityIndicator(color: Colors.black),
                     )
                   : const Text('Konservi pasvorton'),
             ),
@@ -213,34 +211,31 @@ class _ResetPasswordScreenState extends ConsumerState<ResetPasswordScreen> {
                             ],
                           )
                         : isWideLandscape
-                            ? Row(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Expanded(child: _buildBrandPanel(context)),
-                                  const SizedBox(width: 24),
-                                  VerticalDivider(
-                                    color: colorScheme.outline,
-                                    thickness: 1,
-                                  ),
-                                  const SizedBox(width: 24),
-                                  Expanded(
-                                    flex: 2,
-                                    child: _buildFormPanel(
-                                      context,
-                                      isLoading,
-                                    ),
-                                  ),
-                                ],
-                              )
-                            : Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  _buildBrandPanel(context),
-                                  const SizedBox(height: 32),
-                                  _buildFormPanel(context, isLoading),
-                                ],
+                        ? Row(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Expanded(child: _buildBrandPanel(context)),
+                              const SizedBox(width: 24),
+                              VerticalDivider(
+                                color: colorScheme.outline,
+                                thickness: 1,
                               ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                flex: 2,
+                                child: _buildFormPanel(context, isLoading),
+                              ),
+                            ],
+                          )
+                        : Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              _buildBrandPanel(context),
+                              const SizedBox(height: 32),
+                              _buildFormPanel(context, isLoading),
+                            ],
+                          ),
                   ),
                 ),
               ),

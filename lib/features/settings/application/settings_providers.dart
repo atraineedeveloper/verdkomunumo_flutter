@@ -14,7 +14,7 @@ final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
 
 final settingsControllerProvider =
     StateNotifierProvider<SettingsController, SettingsState>((ref) {
-  final repository = ref.watch(settingsRepositoryProvider);
-  final userId = ref.watch(currentUserIdProvider);
-  return SettingsController(repository, userId);
-});
+      final repository = ref.watch(settingsRepositoryProvider);
+      final userId = ref.watch(currentUserIdProvider);
+      return SettingsController(repository, userId);
+    });

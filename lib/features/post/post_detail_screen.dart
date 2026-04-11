@@ -38,10 +38,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     try {
       await ref
           .read(postDetailControllerProvider(widget.postId).notifier)
-          .submitComment(
-            _commentController.text,
-            parentId: _replyTo?.id,
-          );
+          .submitComment(_commentController.text, parentId: _replyTo?.id);
       _commentController.clear();
       setState(() => _replyTo = null);
     } on AppFailure catch (error) {
@@ -264,8 +261,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       builder: (sheetContext) {
         return StatefulBuilder(
           builder: (context, setState) {
-            final isSubmitting =
-                ref.watch(reportsControllerProvider).isLoading;
+            final isSubmitting = ref.watch(reportsControllerProvider).isLoading;
 
             return Padding(
               padding: EdgeInsets.only(
@@ -296,9 +292,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                       if (value == null) return;
                       setState(() => selectedReason = value);
                     },
-                    decoration: const InputDecoration(
-                      labelText: 'Kialo',
-                    ),
+                    decoration: const InputDecoration(labelText: 'Kialo'),
                   ),
                   const SizedBox(height: 12),
                   TextField(
@@ -392,10 +386,7 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         _CommentTile(
           comment: comment,
           currentUserId: currentUserId,
-          onReport: () => _openReportSheet(
-            isPost: false,
-            targetId: comment.id,
-          ),
+          onReport: () => _openReportSheet(isPost: false, targetId: comment.id),
           onEdit: () => _openEditCommentSheet(
             commentId: comment.id,
             initialContent: comment.content,
@@ -413,10 +404,8 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
             child: _CommentTile(
               comment: reply,
               currentUserId: currentUserId,
-              onReport: () => _openReportSheet(
-                isPost: false,
-                targetId: reply.id,
-              ),
+              onReport: () =>
+                  _openReportSheet(isPost: false, targetId: reply.id),
               onEdit: () => _openEditCommentSheet(
                 commentId: reply.id,
                 initialContent: reply.content,
@@ -446,204 +435,190 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.post == null
-              ? Center(child: Text(state.errorMessage ?? 'Afiŝo ne trovita'))
-              : Column(
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: ResponsiveLayout.detailMaxWidth,
-                          ),
-                          child: ListView(
-                            padding: EdgeInsets.fromLTRB(
-                              horizontalPadding,
-                              16,
-                              horizontalPadding,
-                              16,
-                            ),
-                            children: [
-                              _PostBody(
-                                post: state.post!,
-                                currentUserId: currentUserId,
-                                onEdit: () => _openEditPostSheet(
-                                  state.post!.content,
-                                ),
-                                onDelete: _confirmDeletePost,
-                              ),
-                              const SizedBox(height: 8),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: TextButton.icon(
-                                  onPressed: () => _openReportSheet(
-                                    isPost: true,
-                                    targetId: state.post!.id,
-                                  ),
-                                  icon: const Icon(Icons.flag_outlined),
-                                  label: const Text('Raporti'),
-                                ),
-                              ),
-                              const Divider(height: 32),
-                              Text(
-                                '${state.comments.length} komentoj',
-                                style: TextStyle(
-                                  color: colorScheme.onSurface.withAlpha(150),
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              ..._buildCommentThread(
-                                state.comments,
-                                currentUserId,
-                              ),
-                            ],
-                          ),
+          ? Center(child: Text(state.errorMessage ?? 'Afiŝo ne trovita'))
+          : Column(
+              children: [
+                Expanded(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: ResponsiveLayout.detailMaxWidth,
+                      ),
+                      child: ListView(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          16,
+                          horizontalPadding,
+                          16,
                         ),
+                        children: [
+                          _PostBody(
+                            post: state.post!,
+                            currentUserId: currentUserId,
+                            onEdit: () =>
+                                _openEditPostSheet(state.post!.content),
+                            onDelete: _confirmDeletePost,
+                          ),
+                          const SizedBox(height: 8),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: TextButton.icon(
+                              onPressed: () => _openReportSheet(
+                                isPost: true,
+                                targetId: state.post!.id,
+                              ),
+                              icon: const Icon(Icons.flag_outlined),
+                              label: const Text('Raporti'),
+                            ),
+                          ),
+                          const Divider(height: 32),
+                          Text(
+                            '${state.comments.length} komentoj',
+                            style: TextStyle(
+                              color: colorScheme.onSurface.withAlpha(150),
+                              fontSize: 13,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          ..._buildCommentThread(state.comments, currentUserId),
+                        ],
                       ),
                     ),
-                    Material(
-                      color: colorScheme.surface,
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: ResponsiveLayout.detailMaxWidth,
+                  ),
+                ),
+                Material(
+                  color: colorScheme.surface,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: ResponsiveLayout.detailMaxWidth,
+                      ),
+                      child: Container(
+                        padding: EdgeInsets.only(
+                          left: horizontalPadding,
+                          right: horizontalPadding,
+                          top: 12,
+                          bottom: MediaQuery.of(context).viewInsets.bottom + 12,
+                        ),
+                        decoration: BoxDecoration(
+                          color: colorScheme.surface,
+                          border: Border(
+                            top: BorderSide(
+                              color: colorScheme.outline,
+                              width: 0.5,
+                            ),
                           ),
-                          child: Container(
-                            padding: EdgeInsets.only(
-                              left: horizontalPadding,
-                              right: horizontalPadding,
-                              top: 12,
-                              bottom:
-                                  MediaQuery.of(context).viewInsets.bottom + 12,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colorScheme.surface,
-                              border: Border(
-                                top: BorderSide(
-                                  color: colorScheme.outline,
-                                  width: 0.5,
-                                ),
-                              ),
-                            ),
-                            child: isLoggedIn
-                                ? Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      if (_replyTo != null)
-                                        Container(
-                                          width: double.infinity,
-                                          margin: const EdgeInsets.only(
-                                            bottom: 8,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 8,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: colorScheme
-                                                .surfaceContainerHighest,
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(
-                                                  'Respondi al @${_replyTo!.author?.username ?? 'uzanto'}',
-                                                  style: TextStyle(
-                                                    color: colorScheme
-                                                        .onSurface
-                                                        .withAlpha(150),
-                                                  ),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: _cancelReply,
-                                                icon: const Icon(Icons.close),
-                                                tooltip: 'Nuligi',
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      Row(
+                        ),
+                        child: isLoggedIn
+                            ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (_replyTo != null)
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.only(bottom: 8),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 12,
+                                        vertical: 8,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color:
+                                            colorScheme.surfaceContainerHighest,
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Row(
                                         children: [
                                           Expanded(
-                                            child: TextField(
-                                              controller: _commentController,
-                                              decoration: InputDecoration(
-                                                hintText:
-                                                    'Skribu komenton...',
-                                                isDense: true,
-                                                contentPadding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 10,
-                                                    ),
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(24),
-                                                ),
+                                            child: Text(
+                                              'Respondi al @${_replyTo!.author?.username ?? 'uzanto'}',
+                                              style: TextStyle(
+                                                color: colorScheme.onSurface
+                                                    .withAlpha(150),
                                               ),
-                                              maxLines: null,
-                                              textInputAction:
-                                                  TextInputAction.send,
-                                              onSubmitted: (_) =>
-                                                  _submitComment(),
                                             ),
                                           ),
-                                          const SizedBox(width: 8),
-                                          IconButton.filled(
-                                            onPressed: state.isSubmitting
-                                                ? null
-                                                : _submitComment,
-                                            icon: state.isSubmitting
-                                                ? const SizedBox(
-                                                    width: 18,
-                                                    height: 18,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      color: Colors.black,
-                                                    ),
-                                                  )
-                                                : const Icon(Icons.send),
-                                            style: IconButton.styleFrom(
-                                              backgroundColor:
-                                                  colorScheme.primary,
-                                              foregroundColor: Colors.black,
-                                            ),
+                                          IconButton(
+                                            onPressed: _cancelReply,
+                                            icon: const Icon(Icons.close),
+                                            tooltip: 'Nuligi',
                                           ),
                                         ],
                                       ),
-                                    ],
-                                  )
-                                : Row(
+                                    ),
+                                  Row(
                                     children: [
                                       Expanded(
-                                        child: Text(
-                                          'Ensalutu por komenti en ĉi tiu afiŝo.',
-                                          style: TextStyle(
-                                            color:
-                                                colorScheme.onSurface.withAlpha(
-                                              150,
+                                        child: TextField(
+                                          controller: _commentController,
+                                          decoration: InputDecoration(
+                                            hintText: 'Skribu komenton...',
+                                            isDense: true,
+                                            contentPadding:
+                                                const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 10,
+                                                ),
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
                                             ),
                                           ),
+                                          maxLines: null,
+                                          textInputAction: TextInputAction.send,
+                                          onSubmitted: (_) => _submitComment(),
                                         ),
                                       ),
-                                      const SizedBox(width: 12),
-                                      FilledButton(
-                                        onPressed: () =>
-                                            context.push(AppRoutes.login),
-                                        child: const Text('Ensalutu'),
+                                      const SizedBox(width: 8),
+                                      IconButton.filled(
+                                        onPressed: state.isSubmitting
+                                            ? null
+                                            : _submitComment,
+                                        icon: state.isSubmitting
+                                            ? const SizedBox(
+                                                width: 18,
+                                                height: 18,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.black,
+                                                    ),
+                                              )
+                                            : const Icon(Icons.send),
+                                        style: IconButton.styleFrom(
+                                          backgroundColor: colorScheme.primary,
+                                          foregroundColor: Colors.black,
+                                        ),
                                       ),
                                     ],
                                   ),
-                          ),
-                        ),
+                                ],
+                              )
+                            : Row(
+                                children: [
+                                  Expanded(
+                                    child: Text(
+                                      'Ensalutu por komenti en ĉi tiu afiŝo.',
+                                      style: TextStyle(
+                                        color: colorScheme.onSurface.withAlpha(
+                                          150,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  FilledButton(
+                                    onPressed: () =>
+                                        context.push(AppRoutes.login),
+                                    child: const Text('Ensalutu'),
+                                  ),
+                                ],
+                              ),
                       ),
                     ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
     );
   }
 }
@@ -717,14 +692,8 @@ class _PostBody extends StatelessWidget {
                   }
                 },
                 itemBuilder: (context) => const [
-                  PopupMenuItem(
-                    value: 'edit',
-                    child: Text('Redakti'),
-                  ),
-                  PopupMenuItem(
-                    value: 'delete',
-                    child: Text('Forigi'),
-                  ),
+                  PopupMenuItem(value: 'edit', child: Text('Redakti')),
+                  PopupMenuItem(value: 'delete', child: Text('Forigi')),
                 ],
               ),
           ],
@@ -892,14 +861,8 @@ class _CommentTile extends StatelessWidget {
                           }
                         },
                         itemBuilder: (context) => const [
-                          PopupMenuItem(
-                            value: 'edit',
-                            child: Text('Redakti'),
-                          ),
-                          PopupMenuItem(
-                            value: 'delete',
-                            child: Text('Forigi'),
-                          ),
+                          PopupMenuItem(value: 'edit', child: Text('Redakti')),
+                          PopupMenuItem(value: 'delete', child: Text('Forigi')),
                         ],
                       ),
                   ],
