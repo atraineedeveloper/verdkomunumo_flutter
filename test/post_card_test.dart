@@ -26,7 +26,9 @@ void main() {
     }
   });
 
-  testWidgets('PostCard syncs like count when the post changes', (tester) async {
+  testWidgets('PostCard syncs like count when the post changes', (
+    tester,
+  ) async {
     final author = Profile(
       id: 'user-1',
       username: 'verdulo',

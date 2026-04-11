@@ -13,7 +13,9 @@ class SupabaseSearchRepository implements SearchRepository {
   Future<SearchResults> search(String query) async {
     final postsData = await _client
         .from('posts')
-        .select('*, author:profiles!user_id(*), category:categories!category_id(name)')
+        .select(
+          '*, author:profiles!user_id(*), category:categories!category_id(name)',
+        )
         .eq('is_deleted', false)
         .ilike('content', '%$query%')
         .order('created_at', ascending: false)

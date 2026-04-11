@@ -1,10 +1,16 @@
 class AppConstants {
-  static const String supabaseUrl =
-      String.fromEnvironment('SUPABASE_URL', defaultValue: '');
-  static const String supabaseAnonKey =
-      String.fromEnvironment('SUPABASE_ANON_KEY', defaultValue: '');
-  static const String supabaseAuthRedirectUrl =
-      String.fromEnvironment('SUPABASE_AUTH_REDIRECT_URL', defaultValue: '');
+  static const String supabaseUrl = String.fromEnvironment(
+    'SUPABASE_URL',
+    defaultValue: '',
+  );
+  static const String supabaseAnonKey = String.fromEnvironment(
+    'SUPABASE_ANON_KEY',
+    defaultValue: '',
+  );
+  static const String supabaseAuthRedirectUrl = String.fromEnvironment(
+    'SUPABASE_AUTH_REDIRECT_URL',
+    defaultValue: '',
+  );
 
   static const String appName = 'Verdkomunumo';
   static const String appTagline = 'La Verda Komunumo';
@@ -24,10 +30,7 @@ class AppConstants {
   ];
 
   static bool get hasSupabaseConfig =>
-      validateSupabaseConfig(
-        url: supabaseUrl,
-        anonKey: supabaseAnonKey,
-      ) ==
+      validateSupabaseConfig(url: supabaseUrl, anonKey: supabaseAnonKey) ==
       null;
 
   static String? validateSupabaseConfig({

@@ -17,22 +17,24 @@ final messagesRepositoryProvider = Provider<MessagesRepository>((ref) {
 
 final messagesControllerProvider =
     StateNotifierProvider<MessagesController, MessagesState>((ref) {
-  final repository = ref.watch(messagesRepositoryProvider);
-  final analytics = ref.watch(analyticsServiceProvider);
-  return MessagesController(repository, analytics);
-});
+      final repository = ref.watch(messagesRepositoryProvider);
+      final analytics = ref.watch(analyticsServiceProvider);
+      return MessagesController(repository, analytics);
+    });
 
 final conversationControllerProvider =
-    StateNotifierProvider.family<ConversationController, ConversationState, String>(
-  (ref, conversationId) {
-    final repository = ref.watch(messagesRepositoryProvider);
-    final analytics = ref.watch(analyticsServiceProvider);
-    final currentUserId = ref.watch(currentUserIdProvider);
-    return ConversationController(
-      repository,
-      analytics,
-      conversationId,
-      currentUserId,
-    );
-  },
-);
+    StateNotifierProvider.family<
+      ConversationController,
+      ConversationState,
+      String
+    >((ref, conversationId) {
+      final repository = ref.watch(messagesRepositoryProvider);
+      final analytics = ref.watch(analyticsServiceProvider);
+      final currentUserId = ref.watch(currentUserIdProvider);
+      return ConversationController(
+        repository,
+        analytics,
+        conversationId,
+        currentUserId,
+      );
+    });

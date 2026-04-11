@@ -127,9 +127,7 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<void> updatePassword({required String newPassword}) async {
     try {
-      await _client.auth.updateUser(
-        UserAttributes(password: newPassword),
-      );
+      await _client.auth.updateUser(UserAttributes(password: newPassword));
       await _client.auth.signOut();
     } catch (error) {
       final failure = mapSupabaseFailure(

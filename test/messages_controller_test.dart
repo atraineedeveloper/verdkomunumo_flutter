@@ -103,10 +103,7 @@ class _FakeMessagesRepository implements MessagesRepository {
   }
 }
 
-Profile _profile({
-  String id = 'user-1',
-  String username = 'ada',
-}) {
+Profile _profile({String id = 'user-1', String username = 'ada'}) {
   return Profile(
     id: id,
     username: username,
