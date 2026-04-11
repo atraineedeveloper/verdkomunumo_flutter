@@ -56,6 +56,7 @@ class _FakeFeedRepository implements FeedRepository {
   Future<void> createPost({
     required String content,
     required String? categoryId,
+    String? imagePath,
   }) async {}
 
   @override
