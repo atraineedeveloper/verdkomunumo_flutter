@@ -12,6 +12,7 @@ void main() {
         _FakeMessagesRepository(),
         const AnalyticsService.disabled(),
         'c1',
+        'current-user-id',
       );
 
       await controller.load();
@@ -27,6 +28,7 @@ void main() {
         repository,
         const AnalyticsService.disabled(),
         'c1',
+        'current-user-id',
       );
 
       await controller.sendMessage('Saluton');
