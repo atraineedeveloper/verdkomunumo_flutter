@@ -29,8 +29,9 @@ class SettingsState {
     Object? errorMessage = _sentinel,
   }) {
     return SettingsState(
-      profile:
-          identical(profile, _sentinel) ? this.profile : profile as Profile?,
+      profile: identical(profile, _sentinel)
+          ? this.profile
+          : profile as Profile?,
       isLoading: isLoading ?? this.isLoading,
       isSaving: isSaving ?? this.isSaving,
       errorMessage: identical(errorMessage, _sentinel)

@@ -28,31 +28,43 @@ class MockRealtimeChannel implements RealtimeChannel {
   bool unsubscribeCalled = false;
 
   @override
-  RealtimeChannel onPresenceSync(void Function(RealtimePresenceSyncPayload payload) callback) {
+  RealtimeChannel onPresenceSync(
+    void Function(RealtimePresenceSyncPayload payload) callback,
+  ) {
     onPresenceSyncCallback = callback;
     return this;
   }
 
   @override
-  RealtimeChannel onPresenceJoin(void Function(RealtimePresenceJoinPayload payload) callback) {
+  RealtimeChannel onPresenceJoin(
+    void Function(RealtimePresenceJoinPayload payload) callback,
+  ) {
     onPresenceJoinCallback = callback;
     return this;
   }
 
   @override
-  RealtimeChannel onPresenceLeave(void Function(RealtimePresenceLeavePayload payload) callback) {
+  RealtimeChannel onPresenceLeave(
+    void Function(RealtimePresenceLeavePayload payload) callback,
+  ) {
     onPresenceLeaveCallback = callback;
     return this;
   }
 
   @override
-  RealtimeChannel subscribe([void Function(RealtimeSubscribeStatus status, Object? error)? callback, Duration? timeout]) {
+  RealtimeChannel subscribe([
+    void Function(RealtimeSubscribeStatus status, Object? error)? callback,
+    Duration? timeout,
+  ]) {
     subscribeCalled = true;
     return this;
   }
 
   @override
-  Future<ChannelResponse> track(Map<String, dynamic> payload, [Map<String, dynamic> opts = const {}]) async {
+  Future<ChannelResponse> track(
+    Map<String, dynamic> payload, [
+    Map<String, dynamic> opts = const {},
+  ]) async {
     trackCalledWith = payload;
     return ChannelResponse.ok;
   }
@@ -124,9 +136,9 @@ void main() {
       ];
 
       // Trigger sync
-      mockChannel.onPresenceSyncCallback?.call(RealtimePresenceSyncPayload(
-        event: PresenceEvent.sync,
-      ));
+      mockChannel.onPresenceSyncCallback?.call(
+        RealtimePresenceSyncPayload(event: PresenceEvent.sync),
+      );
 
       expect(controller.state, {'user-2', 'user-3'});
 
@@ -136,12 +148,14 @@ void main() {
         SinglePresenceState(key: 'user-3', presences: []),
         SinglePresenceState(key: 'user-4', presences: []),
       ];
-      mockChannel.onPresenceJoinCallback?.call(RealtimePresenceJoinPayload(
-        event: PresenceEvent.join,
-        key: 'user-4',
-        newPresences: [],
-        currentPresences: [],
-      ));
+      mockChannel.onPresenceJoinCallback?.call(
+        RealtimePresenceJoinPayload(
+          event: PresenceEvent.join,
+          key: 'user-4',
+          newPresences: [],
+          currentPresences: [],
+        ),
+      );
 
       expect(controller.state, {'user-2', 'user-3', 'user-4'});
 
@@ -150,12 +164,14 @@ void main() {
         SinglePresenceState(key: 'user-2', presences: []),
         SinglePresenceState(key: 'user-3', presences: []),
       ];
-      mockChannel.onPresenceLeaveCallback?.call(RealtimePresenceLeavePayload(
-        event: PresenceEvent.leave,
-        key: 'user-4',
-        leftPresences: [],
-        currentPresences: [],
-      ));
+      mockChannel.onPresenceLeaveCallback?.call(
+        RealtimePresenceLeavePayload(
+          event: PresenceEvent.leave,
+          key: 'user-4',
+          leftPresences: [],
+          currentPresences: [],
+        ),
+      );
 
       expect(controller.state, {'user-2', 'user-3'});
     });
