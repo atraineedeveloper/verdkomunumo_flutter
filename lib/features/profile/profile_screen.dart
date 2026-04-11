@@ -4,7 +4,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../app/routing/app_routes.dart';
 import '../../core/error/app_failure.dart';
+import '../../core/presence/presence_providers.dart';
 import '../../core/responsive.dart';
+import '../../core/theme.dart';
 import '../../models/profile.dart';
 import '../../widgets/user_avatar.dart';
 import '../auth/application/auth_providers.dart';
@@ -19,20 +21,27 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(profileControllerProvider(username));
-    final controller = ref.read(profileControllerProvider(username).notifier);
+    final controller =
+        ref.read(profileControllerProvider(username).notifier);
     final colorScheme = Theme.of(context).colorScheme;
     final currentUserId = ref.watch(currentUserIdProvider);
+    final onlineIds = ref.watch(presenceControllerProvider);
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
     final isOwnProfile =
         state.profile != null && currentUserId == state.profile!.id;
+    final isOnline =
+        state.profile != null && onlineIds.contains(state.profile!.id);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(state.profile?.username ?? username),
+        title: Text(
+          state.profile?.username ?? username,
+          style: Theme.of(context).textTheme.titleLarge,
+        ),
         actions: [
           if (isOwnProfile)
             IconButton(
-              icon: const Icon(Icons.settings_outlined),
+              icon: const Icon(Icons.settings_outlined, size: 22),
               onPressed: () => context.go(AppRoutes.settings),
             ),
         ],
@@ -40,21 +49,32 @@ class ProfileScreen extends ConsumerWidget {
       body: state.isLoading
           ? const Center(child: CircularProgressIndicator())
           : state.profile == null
-          ? Center(child: Text(state.errorMessage ?? 'Profilo ne trovita'))
+          ? Center(
+              child: Text(
+                state.errorMessage ?? 'Profilo ne trovita',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: colorScheme.onSurface.withAlpha(140),
+                ),
+              ),
+            )
           : CustomScrollView(
               slivers: [
-                SliverPadding(
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
-                  sliver: SliverToBoxAdapter(
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: ResponsiveLayout.contentMaxWidth,
+                // ── Profile header ────────────────────────────────────────────
+                SliverToBoxAdapter(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: ResponsiveLayout.contentMaxWidth,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: horizontalPadding,
                         ),
                         child: _ProfileHeader(
                           profile: state.profile!,
                           isFollowing: state.isFollowing,
                           isOwnProfile: isOwnProfile,
+                          isOnline: isOnline,
                           followLoading: state.isFollowLoading,
                           onFollowTap: () async {
                             if (!ref
@@ -63,7 +83,6 @@ class ProfileScreen extends ConsumerWidget {
                               context.push(AppRoutes.login);
                               return;
                             }
-
                             try {
                               await controller.toggleFollow();
                             } on AppFailure catch (error) {
@@ -81,50 +100,76 @@ class ProfileScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
+
+                // ── Divider + post count ──────────────────────────────────────
                 SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      horizontalPadding,
-                      16,
-                      horizontalPadding,
-                      8,
-                    ),
-                    child: Center(
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: ResponsiveLayout.contentMaxWidth,
-                        ),
-                        child: Text(
-                          '${state.posts.length} afiŝoj',
-                          style: TextStyle(
-                            color: colorScheme.onSurface.withAlpha(150),
-                            fontSize: 13,
-                          ),
-                        ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Divider(
+                        height: 1,
+                        color: colorScheme.outline.withAlpha(80),
                       ),
-                    ),
-                  ),
-                ),
-                if (state.posts.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: horizontalPadding,
-                      ),
-                      child: Center(
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(
-                            maxWidth: ResponsiveLayout.contentMaxWidth,
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          horizontalPadding,
+                          12,
+                          horizontalPadding,
+                          4,
+                        ),
+                        child: Center(
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(
+                              maxWidth: ResponsiveLayout.contentMaxWidth,
+                            ),
                             child: Text(
-                              'Ankoraŭ ne estas afiŝoj',
-                              style: TextStyle(
-                                color: colorScheme.onSurface.withAlpha(150),
-                              ),
+                              '${state.posts.length} afiŝoj',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .labelMedium,
                             ),
                           ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                // ── Posts list ────────────────────────────────────────────────
+                if (state.posts.isEmpty)
+                  SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Container(
+                              width: 64,
+                              height: 64,
+                              decoration: BoxDecoration(
+                                color: colorScheme.surfaceContainerHighest,
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Icon(
+                                Icons.article_outlined,
+                                size: 28,
+                                color: colorScheme.onSurface.withAlpha(80),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Ankoraŭ ne estas afiŝoj',
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
+                                  ?.copyWith(
+                                    color: colorScheme.onSurface
+                                        .withAlpha(140),
+                                  ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -132,19 +177,14 @@ class ProfileScreen extends ConsumerWidget {
                 else
                   SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (_, index) => Padding(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: horizontalPadding,
-                        ),
-                        child: Center(
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(
-                              maxWidth: ResponsiveLayout.contentMaxWidth,
-                            ),
-                            child: PostCard(
-                              key: ValueKey(state.posts[index].id),
-                              post: state.posts[index],
-                            ),
+                      (_, index) => Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: ResponsiveLayout.contentMaxWidth,
+                          ),
+                          child: PostCard(
+                            key: ValueKey(state.posts[index].id),
+                            post: state.posts[index],
                           ),
                         ),
                       ),
@@ -157,10 +197,13 @@ class ProfileScreen extends ConsumerWidget {
   }
 }
 
+// ── Profile header ─────────────────────────────────────────────────────────────
+
 class _ProfileHeader extends StatelessWidget {
   final Profile profile;
   final bool isFollowing;
   final bool isOwnProfile;
+  final bool isOnline;
   final bool followLoading;
   final VoidCallback onFollowTap;
 
@@ -168,6 +211,7 @@ class _ProfileHeader extends StatelessWidget {
     required this.profile,
     required this.isFollowing,
     required this.isOwnProfile,
+    required this.isOnline,
     required this.followLoading,
     required this.onFollowTap,
   });
@@ -183,123 +227,258 @@ class _ProfileHeader extends StatelessWidget {
     }
   }
 
+  Color _levelColor(BuildContext context) {
+    switch (profile.esperantoLevel) {
+      case 'flua':
+        return const Color(0xFF22C55E);
+      case 'progresanto':
+        return const Color(0xFF3B82F6);
+      default:
+        return Theme.of(context).colorScheme.onSurface.withAlpha(120);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Padding(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.fromLTRB(0, 20, 0, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // ── Avatar row ─────────────────────────────────────────────────────
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              UserAvatar(
-                avatarUrl: profile.avatarUrl,
-                username: profile.username,
-                radius: 36,
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Wrap(
-                  alignment: WrapAlignment.end,
-                  runAlignment: WrapAlignment.center,
-                  children: [
-                    if (!isOwnProfile)
-                      OutlinedButton(
-                        onPressed: followLoading ? null : onFollowTap,
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: isFollowing
-                              ? colorScheme.onSurface
-                              : colorScheme.primary,
-                          side: BorderSide(
-                            color: isFollowing
-                                ? colorScheme.outline
-                                : colorScheme.primary,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
+              // Avatar with presence
+              Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Glow ring for online
+                  if (isOnline)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: AppTheme.primaryGreen.withAlpha(80),
+                              blurRadius: 12,
+                              spreadRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  UserAvatar(
+                    avatarUrl: profile.avatarUrl,
+                    username: profile.username,
+                    radius: 44,
+                  ),
+                  if (isOnline)
+                    Positioned(
+                      right: 2,
+                      bottom: 2,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryGreen,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Theme.of(context).scaffoldBackgroundColor,
+                            width: 2,
                           ),
                         ),
-                        child: followLoading
-                            ? const SizedBox(
-                                width: 16,
-                                height: 16,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              )
-                            : Text(isFollowing ? 'Malsekvu' : 'Sekvu'),
                       ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 20),
+
+              // Stats: following | followers | posts
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _StatColumn(
+                      count: profile.postsCount,
+                      label: 'Afiŝoj',
+                    ),
+                    _StatColumn(
+                      count: profile.followersCount,
+                      label: 'Sekvantoj',
+                    ),
+                    _StatColumn(
+                      count: profile.followingCount,
+                      label: 'Sekvitaj',
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
+
+          // ── Name + username ────────────────────────────────────────────────
           Text(
             profile.name,
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-          ),
-          Text(
-            '@${profile.username}',
-            style: TextStyle(
-              color: colorScheme.onSurface.withAlpha(150),
-              fontSize: 14,
+            style: textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
             ),
           ),
+          const SizedBox(height: 1),
+          Text(
+            '@${profile.username}',
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withAlpha(140),
+              fontSize: 13,
+            ),
+          ),
+
+          // ── Level badge ────────────────────────────────────────────────────
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 8,
+                  vertical: 3,
+                ),
+                decoration: BoxDecoration(
+                  color: _levelColor(context).withAlpha(20),
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: _levelColor(context).withAlpha(60),
+                  ),
+                ),
+                child: Text(
+                  _levelLabel,
+                  style: textTheme.labelSmall?.copyWith(
+                    color: _levelColor(context),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // ── Bio ────────────────────────────────────────────────────────────
           if (profile.bio?.isNotEmpty == true) ...[
             const SizedBox(height: 10),
             Text(
               profile.bio!,
-              style: const TextStyle(fontSize: 15, height: 1.4),
+              style: textTheme.bodyMedium?.copyWith(
+                fontSize: 14,
+                height: 1.4,
+                color: colorScheme.onSurface.withAlpha(220),
+              ),
             ),
           ],
-          const SizedBox(height: 10),
-          Chip(
-            label: Text(_levelLabel, style: const TextStyle(fontSize: 12)),
-            padding: EdgeInsets.zero,
-            visualDensity: VisualDensity.compact,
-          ),
-          const SizedBox(height: 16),
-          Wrap(
-            spacing: 24,
-            runSpacing: 12,
-            children: [
-              _StatItem(count: profile.followingCount, label: 'Sekvitaj'),
-              _StatItem(count: profile.followersCount, label: 'Sekvantoj'),
-              _StatItem(count: profile.postsCount, label: 'Afiŝoj'),
-            ],
-          ),
+
+          // ── Action button ──────────────────────────────────────────────────
+          if (!isOwnProfile) ...[
+            const SizedBox(height: 14),
+            SizedBox(
+              width: double.infinity,
+              height: 38,
+              child: isFollowing
+                  ? OutlinedButton(
+                      onPressed: followLoading ? null : onFollowTap,
+                      style: OutlinedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        side: BorderSide(color: colorScheme.outline),
+                      ),
+                      child: followLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : Text(
+                              'Malsekvu',
+                              style: textTheme.labelLarge?.copyWith(
+                                fontSize: 14,
+                              ),
+                            ),
+                    )
+                  : ElevatedButton(
+                      onPressed: followLoading ? null : onFollowTap,
+                      style: ElevatedButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: followLoading
+                          ? const SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.black,
+                              ),
+                            )
+                          : Text(
+                              'Sekvu',
+                              style: textTheme.labelLarge?.copyWith(
+                                fontSize: 14,
+                                color: Colors.black,
+                              ),
+                            ),
+                    ),
+            ),
+          ],
         ],
       ),
     );
   }
 }
 
-class _StatItem extends StatelessWidget {
+// ── Stat column ────────────────────────────────────────────────────────────────
+
+class _StatColumn extends StatelessWidget {
   final int count;
   final String label;
 
-  const _StatItem({required this.count, required this.label});
+  const _StatColumn({required this.count, required this.label});
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Column(
       children: [
         Text(
-          '$count',
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          _formatCount(count),
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+          ),
         ),
+        const SizedBox(height: 2),
         Text(
           label,
-          style: TextStyle(
-            fontSize: 12,
-            color: Theme.of(context).colorScheme.onSurface.withAlpha(150),
+          style: textTheme.labelSmall?.copyWith(
+            color: colorScheme.onSurface.withAlpha(140),
+            fontSize: 11,
           ),
         ),
       ],
     );
+  }
+
+  String _formatCount(int n) {
+    if (n >= 1000000) return '${(n / 1000000).toStringAsFixed(1)}M';
+    if (n >= 1000) return '${(n / 1000).toStringAsFixed(1)}K';
+    return '$n';
   }
 }

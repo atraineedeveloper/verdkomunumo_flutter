@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../app/routing/app_routes.dart';
+import '../../../core/presence/presence_providers.dart';
 import '../../../models/profile.dart';
 import '../../../widgets/user_avatar.dart';
 import '../../auth/application/auth_providers.dart';
@@ -72,10 +73,12 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
       conversationControllerProvider(widget.conversationId),
     );
     final currentUserId = ref.watch(currentUserIdProvider);
+    final onlineIds = ref.watch(presenceControllerProvider);
     final conversation = state.conversation;
     final other = conversation == null
         ? null
         : _otherParticipant(conversation.participants, currentUserId);
+    final isOnline = other != null && onlineIds.contains(other.id);
 
     return Scaffold(
       appBar: AppBar(
@@ -83,7 +86,23 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.go(AppRoutes.messages),
         ),
-        title: Text(other?.name ?? 'Konversacio'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(other?.name ?? 'Konversacio'),
+            if (isOnline) ...[
+              const SizedBox(width: 8),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF22C55E),
+                  shape: BoxShape.circle,
+                ),
+              ),
+            ],
+          ],
+        ),
       ),
       body: Column(
         children: [

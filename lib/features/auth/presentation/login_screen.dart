@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../app/routing/app_routes.dart';
 import '../../../core/constants.dart';
 import '../../../core/responsive.dart';
+import '../../../core/theme.dart';
 import '../../../widgets/esperanto_star.dart';
 import '../application/auth_providers.dart';
 import '../domain/auth_failure.dart';
@@ -68,37 +69,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Widget _buildBrandPanel(BuildContext context) {
+  Widget _buildLogo(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 80,
-          height: 80,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
-            color: colorScheme.primary.withAlpha(20),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: colorScheme.primary.withAlpha(60)),
+            color: AppTheme.primaryGreen,
+            borderRadius: BorderRadius.circular(10),
           ),
-          child: EsperantoStar(size: 44, color: colorScheme.primary),
+          child: const Center(
+            child: EsperantoStar(size: 22, color: Colors.black),
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(width: 12),
         Text(
           'Verdkomunumo',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            color: colorScheme.primary,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'La Verda Komunumo',
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: colorScheme.onSurface.withAlpha(150),
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
           ),
         ),
       ],
@@ -107,43 +101,62 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Widget _buildFormPanel(BuildContext context, bool isLoading) {
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
 
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
+        _buildLogo(context),
+        const SizedBox(height: 32),
+        Text(
+          'Bonvenon reen',
+          style: textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          'Ensalutu por daŭrigi en la komunumo',
+          style: textTheme.bodyMedium?.copyWith(
+            color: colorScheme.onSurface.withAlpha(140),
+          ),
+        ),
+        const SizedBox(height: 28),
         Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               TextFormField(
                 controller: _emailController,
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Retpoŝtadreso',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(Icons.mail_outline_rounded, size: 20),
                 ),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Enigu vian retpoŝtadreson';
                   }
-                  if (!value.contains('@')) {
-                    return 'Nevalida retpoŝtadreso';
-                  }
+                  if (!value.contains('@')) return 'Nevalida retpoŝtadreso';
                   return null;
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               TextFormField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Pasvorto',
-                  prefixIcon: const Icon(Icons.lock_outlined),
+                  prefixIcon: const Icon(Icons.lock_outline_rounded, size: 20),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePassword
                           ? Icons.visibility_outlined
                           : Icons.visibility_off_outlined,
+                      size: 20,
                     ),
                     onPressed: () =>
                         setState(() => _obscurePassword = !_obscurePassword),
@@ -156,9 +169,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   return null;
                 },
               ),
-              const SizedBox(height: 24),
+              Align(
+                alignment: Alignment.centerRight,
+                child: TextButton(
+                  onPressed: () => context.go(AppRoutes.forgotPassword),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 8,
+                    ),
+                  ),
+                  child: Text(
+                    'Forgesis pasvorton?',
+                    style: textTheme.labelMedium?.copyWith(
+                      color: AppTheme.primaryGreen,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 4),
               SizedBox(
-                width: double.infinity,
+                height: 50,
                 child: ElevatedButton(
                   onPressed: isLoading ? null : _signIn,
                   child: isLoading
@@ -173,37 +204,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : const Text('Ensalutu'),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 16),
+              _OrDivider(),
+              const SizedBox(height: 16),
               SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
+                height: 50,
+                child: OutlinedButton(
                   onPressed: isLoading ? null : _signInWithGoogle,
-                  icon: const Icon(Icons.g_mobiledata),
-                  label: const Text('Daŭrigi per Google'),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.g_mobiledata_rounded,
+                        size: 26,
+                        color: colorScheme.onSurface,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Daŭrigi per Google',
+                        style: textTheme.labelLarge?.copyWith(
+                          color: colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-        TextButton(
-          onPressed: () => context.go(AppRoutes.forgotPassword),
-          child: Text(
-            'Ĉu vi forgesis la pasvorton?',
-            style: TextStyle(color: colorScheme.onSurface.withAlpha(150)),
-          ),
-        ),
-        const SizedBox(height: 24),
-        Wrap(
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        const SizedBox(height: 28),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Ankoraŭ ne havas konton? ',
-              style: TextStyle(color: colorScheme.onSurface.withAlpha(150)),
+              'Ankoraŭ sen konto?',
+              style: textTheme.bodyMedium?.copyWith(
+                color: colorScheme.onSurface.withAlpha(140),
+              ),
             ),
             TextButton(
               onPressed: () => context.go(AppRoutes.register),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 6),
+              ),
               child: const Text('Registriĝu'),
             ),
           ],
@@ -211,8 +255,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         TextButton(
           onPressed: () => context.go(AppRoutes.feed),
           child: Text(
-            'Daŭrigu sen konto',
-            style: TextStyle(color: colorScheme.onSurface.withAlpha(120)),
+            'Daŭrigu sen konto →',
+            style: textTheme.bodySmall?.copyWith(
+              color: colorScheme.onSurface.withAlpha(100),
+            ),
           ),
         ),
       ],
@@ -226,18 +272,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         ResponsiveLayout.isLandscape(context) &&
         MediaQuery.sizeOf(context).width >= 700;
     final colorScheme = Theme.of(context).colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: SafeArea(
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+            gradient: RadialGradient(
+              center: Alignment.topLeft,
+              radius: 1.2,
               colors: [
-                colorScheme.primary.withAlpha(22),
+                AppTheme.primaryGreen.withAlpha(isDark ? 18 : 14),
                 colorScheme.surface,
-                colorScheme.surfaceContainerHighest.withAlpha(210),
               ],
             ),
           ),
@@ -250,42 +296,96 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 maxWidth: ResponsiveLayout.formMaxWidth,
                 padding: EdgeInsets.zero,
                 alignment: Alignment.center,
-                child: Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: isWideLandscape
-                        ? Row(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Expanded(child: _buildBrandPanel(context)),
-                              const SizedBox(width: 24),
-                              VerticalDivider(
-                                color: colorScheme.outline,
-                                thickness: 1,
-                              ),
-                              const SizedBox(width: 24),
-                              Expanded(
-                                flex: 2,
-                                child: _buildFormPanel(context, isLoading),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              _buildBrandPanel(context),
-                              const SizedBox(height: 40),
-                              _buildFormPanel(context, isLoading),
-                            ],
+                child: isWideLandscape
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Expanded(
+                            child: _buildBrandSide(context),
                           ),
-                  ),
-                ),
+                          const SizedBox(width: 48),
+                          Expanded(
+                            flex: 2,
+                            child: _buildCard(context, isLoading),
+                          ),
+                        ],
+                      )
+                    : _buildCard(context, isLoading),
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBrandSide(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: AppTheme.primaryGreen,
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: const Center(
+            child: EsperantoStar(size: 36, color: Colors.black),
+          ),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'La verda\nkomunumo',
+          style: Theme.of(context).textTheme.headlineLarge?.copyWith(
+            color: colorScheme.onSurface,
+            letterSpacing: -1,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          'Konektiĝu kun Esperanto-parolantoj\nel la tuta mondo.',
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+            color: colorScheme.onSurface.withAlpha(140),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCard(BuildContext context, bool isLoading) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.all(28),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colorScheme.outline),
+      ),
+      child: _buildFormPanel(context, isLoading),
+    );
+  }
+}
+
+class _OrDivider extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).colorScheme.outline;
+    return Row(
+      children: [
+        Expanded(child: Divider(color: color)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            'aŭ',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
+        Expanded(child: Divider(color: color)),
+      ],
     );
   }
 }

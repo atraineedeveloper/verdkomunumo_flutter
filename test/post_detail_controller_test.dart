@@ -133,9 +133,14 @@ class _FakePostDetailRepository implements PostDetailRepository {
   Future<void> createComment({
     required String postId,
     required String content,
+    String? parentId,
   }) async {
     createCommentCalls.add(
-      _CreateCommentCall(postId: postId, content: content),
+      _CreateCommentCall(
+        postId: postId,
+        content: content,
+        parentId: parentId,
+      ),
     );
 
     if (createCommentError != null) {
@@ -153,13 +158,36 @@ class _FakePostDetailRepository implements PostDetailRepository {
 
     return data ?? PostDetailData(post: _post(), comments: const []);
   }
+
+  @override
+  Future<void> updatePost({
+    required String postId,
+    required String content,
+  }) async {}
+
+  @override
+  Future<void> deletePost({required String postId}) async {}
+
+  @override
+  Future<void> updateComment({
+    required String commentId,
+    required String content,
+  }) async {}
+
+  @override
+  Future<void> deleteComment({required String commentId}) async {}
 }
 
 class _CreateCommentCall {
   final String postId;
   final String content;
+  final String? parentId;
 
-  const _CreateCommentCall({required this.postId, required this.content});
+  const _CreateCommentCall({
+    required this.postId,
+    required this.content,
+    this.parentId,
+  });
 }
 
 Profile _profile() {
@@ -196,6 +224,7 @@ Comment _comment({required String id}) {
     authorId: 'user-1',
     content: 'Bonega afiŝo',
     likesCount: 0,
+    isEdited: false,
     createdAt: DateTime(2026, 1, 1),
     author: _profile(),
   );

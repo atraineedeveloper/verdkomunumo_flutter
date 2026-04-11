@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../app/routing/app_routes.dart';
+import '../../../core/presence/presence_providers.dart';
 import '../../../core/responsive.dart';
 import '../../../models/profile.dart';
 import '../../../widgets/user_avatar.dart';
@@ -137,6 +138,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget build(BuildContext context) {
     final state = ref.watch(messagesControllerProvider);
     final currentUserId = ref.watch(currentUserIdProvider);
+    final onlineIds = ref.watch(presenceControllerProvider);
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
 
     return Scaffold(
@@ -202,9 +204,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   conversation.participants,
                   currentUserId,
                 );
+                final isOnline =
+                    other != null && onlineIds.contains(other.id);
                 return _ConversationTile(
                   conversation: conversation,
                   other: other,
+                  isOnline: isOnline,
                   onTap: () => context.go(
                     '${AppRoutes.conversationPrefix}/${conversation.id}',
                   ),
@@ -220,11 +225,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 class _ConversationTile extends StatelessWidget {
   final ConversationSummary conversation;
   final Profile? other;
+  final bool isOnline;
   final VoidCallback onTap;
 
   const _ConversationTile({
     required this.conversation,
     required this.other,
+    required this.isOnline,
     required this.onTap,
   });
 
@@ -244,10 +251,11 @@ class _ConversationTile extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              UserAvatar(
+              _AvatarWithPresence(
                 avatarUrl: other?.avatarUrl,
                 username: other?.username ?? 'uzanto',
                 radius: 24,
+                isOnline: isOnline,
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -309,6 +317,51 @@ class _ConversationTile extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+class _AvatarWithPresence extends StatelessWidget {
+  final String? avatarUrl;
+  final String username;
+  final double radius;
+  final bool isOnline;
+
+  const _AvatarWithPresence({
+    required this.avatarUrl,
+    required this.username,
+    required this.radius,
+    required this.isOnline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        UserAvatar(
+          avatarUrl: avatarUrl,
+          username: username,
+          radius: radius,
+        ),
+        if (isOnline)
+          Positioned(
+            right: -2,
+            bottom: -2,
+            child: Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(
+                color: const Color(0xFF22C55E),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).colorScheme.surface,
+                  width: 2,
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

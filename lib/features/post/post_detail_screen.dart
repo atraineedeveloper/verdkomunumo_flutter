@@ -26,6 +26,7 @@ class PostDetailScreen extends ConsumerStatefulWidget {
 
 class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
   final _commentController = TextEditingController();
+  Comment? _replyTo;
 
   @override
   void dispose() {
@@ -37,8 +38,12 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     try {
       await ref
           .read(postDetailControllerProvider(widget.postId).notifier)
-          .submitComment(_commentController.text);
+          .submitComment(
+            _commentController.text,
+            parentId: _replyTo?.id,
+          );
       _commentController.clear();
+      setState(() => _replyTo = null);
     } on AppFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -48,6 +53,190 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
         ),
       );
     }
+  }
+
+  void _startReply(Comment comment) {
+    setState(() => _replyTo = comment);
+  }
+
+  void _cancelReply() {
+    setState(() => _replyTo = null);
+  }
+
+  Future<void> _openEditPostSheet(String initialContent) async {
+    final controller = TextEditingController(text: initialContent);
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Redakti afiŝon',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 6,
+                minLines: 3,
+                decoration: const InputDecoration(
+                  hintText: 'Ĝisdatigu la afiŝon...',
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await ref
+                        .read(
+                          postDetailControllerProvider(widget.postId).notifier,
+                        )
+                        .updatePost(controller.text);
+                    if (!mounted) return;
+                    Navigator.of(sheetContext).pop();
+                  },
+                  child: const Text('Konservi'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    controller.dispose();
+  }
+
+  Future<void> _openEditCommentSheet({
+    required String commentId,
+    required String initialContent,
+  }) async {
+    final controller = TextEditingController(text: initialContent);
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (sheetContext) {
+        return Padding(
+          padding: EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 16,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Redakti komenton',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 4,
+                minLines: 2,
+                decoration: const InputDecoration(
+                  hintText: 'Ĝisdatigu la komenton...',
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    await ref
+                        .read(
+                          postDetailControllerProvider(widget.postId).notifier,
+                        )
+                        .updateComment(
+                          commentId: commentId,
+                          content: controller.text,
+                        );
+                    if (!mounted) return;
+                    Navigator.of(sheetContext).pop();
+                  },
+                  child: const Text('Konservi'),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+    controller.dispose();
+  }
+
+  Future<void> _confirmDeletePost() async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Forigi afiŝon?'),
+          content: const Text('Ĉi tio kaŝos la afiŝon por ĉiuj uzantoj.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Nuligi'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Forigi'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete != true) return;
+    await ref
+        .read(postDetailControllerProvider(widget.postId).notifier)
+        .deletePost();
+    if (!mounted) return;
+    context.go(AppRoutes.feed);
+  }
+
+  Future<void> _confirmDeleteComment(String commentId) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Forigi komenton?'),
+          content: const Text('Ĉi tio kaŝos la komenton por ĉiuj uzantoj.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Nuligi'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              child: const Text('Forigi'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete != true) return;
+    await ref
+        .read(postDetailControllerProvider(widget.postId).notifier)
+        .deleteComment(commentId);
   }
 
   Future<void> _openReportSheet({
@@ -185,10 +374,70 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
     detailsController.dispose();
   }
 
+  List<Widget> _buildCommentThread(
+    List<Comment> comments,
+    String? currentUserId,
+  ) {
+    final topLevel = comments.where((comment) => comment.parentId == null);
+    final repliesByParent = <String, List<Comment>>{};
+    for (final comment in comments) {
+      final parentId = comment.parentId;
+      if (parentId == null) continue;
+      repliesByParent.putIfAbsent(parentId, () => []).add(comment);
+    }
+
+    final widgets = <Widget>[];
+    for (final comment in topLevel) {
+      widgets.add(
+        _CommentTile(
+          comment: comment,
+          currentUserId: currentUserId,
+          onReport: () => _openReportSheet(
+            isPost: false,
+            targetId: comment.id,
+          ),
+          onEdit: () => _openEditCommentSheet(
+            commentId: comment.id,
+            initialContent: comment.content,
+          ),
+          onDelete: () => _confirmDeleteComment(comment.id),
+          onReply: () => _startReply(comment),
+        ),
+      );
+
+      final replies = repliesByParent[comment.id] ?? const [];
+      for (final reply in replies) {
+        widgets.add(
+          Padding(
+            padding: const EdgeInsets.only(left: 28),
+            child: _CommentTile(
+              comment: reply,
+              currentUserId: currentUserId,
+              onReport: () => _openReportSheet(
+                isPost: false,
+                targetId: reply.id,
+              ),
+              onEdit: () => _openEditCommentSheet(
+                commentId: reply.id,
+                initialContent: reply.content,
+              ),
+              onDelete: () => _confirmDeleteComment(reply.id),
+              onReply: () => _startReply(comment),
+            ),
+          ),
+        );
+      }
+    }
+    return widgets;
+  }
+
+  // SECTION: builders
+
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(postDetailControllerProvider(widget.postId));
     final isLoggedIn = ref.watch(authStateNotifierProvider).isAuthenticated;
+    final currentUserId = ref.watch(currentUserIdProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final horizontalPadding = ResponsiveLayout.horizontalPadding(context);
 
@@ -214,7 +463,14 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               16,
                             ),
                             children: [
-                              _PostBody(post: state.post!),
+                              _PostBody(
+                                post: state.post!,
+                                currentUserId: currentUserId,
+                                onEdit: () => _openEditPostSheet(
+                                  state.post!.content,
+                                ),
+                                onDelete: _confirmDeletePost,
+                              ),
                               const SizedBox(height: 8),
                               Align(
                                 alignment: Alignment.centerLeft,
@@ -236,14 +492,9 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                                 ),
                               ),
                               const SizedBox(height: 12),
-                              ...state.comments.map(
-                                (comment) => _CommentTile(
-                                  comment: comment,
-                                  onReport: () => _openReportSheet(
-                                    isPost: false,
-                                    targetId: comment.id,
-                                  ),
-                                ),
+                              ..._buildCommentThread(
+                                state.comments,
+                                currentUserId,
                               ),
                             ],
                           ),
@@ -275,49 +526,94 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
                               ),
                             ),
                             child: isLoggedIn
-                                ? Row(
+                                ? Column(
+                                    mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Expanded(
-                                        child: TextField(
-                                          controller: _commentController,
-                                          decoration: InputDecoration(
-                                            hintText: 'Skribu komenton...',
-                                            isDense: true,
-                                            contentPadding:
-                                                const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 10,
+                                      if (_replyTo != null)
+                                        Container(
+                                          width: double.infinity,
+                                          margin: const EdgeInsets.only(
+                                            bottom: 8,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: colorScheme
+                                                .surfaceContainerHighest,
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  'Respondi al @${_replyTo!.author?.username ?? 'uzanto'}',
+                                                  style: TextStyle(
+                                                    color: colorScheme
+                                                        .onSurface
+                                                        .withAlpha(150),
+                                                  ),
                                                 ),
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(24),
+                                              ),
+                                              IconButton(
+                                                onPressed: _cancelReply,
+                                                icon: const Icon(Icons.close),
+                                                tooltip: 'Nuligi',
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: TextField(
+                                              controller: _commentController,
+                                              decoration: InputDecoration(
+                                                hintText:
+                                                    'Skribu komenton...',
+                                                isDense: true,
+                                                contentPadding:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 16,
+                                                      vertical: 10,
+                                                    ),
+                                                border: OutlineInputBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                ),
+                                              ),
+                                              maxLines: null,
+                                              textInputAction:
+                                                  TextInputAction.send,
+                                              onSubmitted: (_) =>
+                                                  _submitComment(),
                                             ),
                                           ),
-                                          maxLines: null,
-                                          textInputAction: TextInputAction.send,
-                                          onSubmitted: (_) => _submitComment(),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      IconButton.filled(
-                                        onPressed: state.isSubmitting
-                                            ? null
-                                            : _submitComment,
-                                        icon: state.isSubmitting
-                                            ? const SizedBox(
-                                                width: 18,
-                                                height: 18,
-                                                child:
-                                                    CircularProgressIndicator(
-                                                  strokeWidth: 2,
-                                                  color: Colors.black,
-                                                ),
-                                              )
-                                            : const Icon(Icons.send),
-                                        style: IconButton.styleFrom(
-                                          backgroundColor: colorScheme.primary,
-                                          foregroundColor: Colors.black,
-                                        ),
+                                          const SizedBox(width: 8),
+                                          IconButton.filled(
+                                            onPressed: state.isSubmitting
+                                                ? null
+                                                : _submitComment,
+                                            icon: state.isSubmitting
+                                                ? const SizedBox(
+                                                    width: 18,
+                                                    height: 18,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.black,
+                                                    ),
+                                                  )
+                                                : const Icon(Icons.send),
+                                            style: IconButton.styleFrom(
+                                              backgroundColor:
+                                                  colorScheme.primary,
+                                              foregroundColor: Colors.black,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   )
@@ -354,8 +650,16 @@ class _PostDetailScreenState extends ConsumerState<PostDetailScreen> {
 
 class _PostBody extends StatelessWidget {
   final Post post;
+  final String? currentUserId;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
 
-  const _PostBody({required this.post});
+  const _PostBody({
+    required this.post,
+    required this.currentUserId,
+    required this.onEdit,
+    required this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -399,6 +703,30 @@ class _PostBody extends StatelessWidget {
                 ),
               ],
             ),
+            const Spacer(),
+            if (currentUserId != null && currentUserId == post.authorId)
+              PopupMenuButton<String>(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'edit':
+                      onEdit();
+                      break;
+                    case 'delete':
+                      onDelete();
+                      break;
+                  }
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem(
+                    value: 'edit',
+                    child: Text('Redakti'),
+                  ),
+                  PopupMenuItem(
+                    value: 'delete',
+                    child: Text('Forigi'),
+                  ),
+                ],
+              ),
           ],
         ),
         const SizedBox(height: 16),
@@ -426,12 +754,26 @@ class _PostBody extends StatelessWidget {
           ),
         ],
         const SizedBox(height: 12),
-        Text(
-          timeago.format(post.createdAt, locale: 'es'),
-          style: TextStyle(
-            color: colorScheme.onSurface.withAlpha(120),
-            fontSize: 13,
-          ),
+        Row(
+          children: [
+            Text(
+              timeago.format(post.createdAt, locale: 'es'),
+              style: TextStyle(
+                color: colorScheme.onSurface.withAlpha(120),
+                fontSize: 13,
+              ),
+            ),
+            if (post.isEdited) ...[
+              const SizedBox(width: 8),
+              Text(
+                'Redaktita',
+                style: TextStyle(
+                  color: colorScheme.onSurface.withAlpha(120),
+                  fontSize: 13,
+                ),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 12),
         Row(
@@ -466,9 +808,20 @@ class _PostBody extends StatelessWidget {
 
 class _CommentTile extends StatelessWidget {
   final Comment comment;
+  final String? currentUserId;
   final VoidCallback onReport;
+  final VoidCallback onEdit;
+  final VoidCallback onDelete;
+  final VoidCallback onReply;
 
-  const _CommentTile({required this.comment, required this.onReport});
+  const _CommentTile({
+    required this.comment,
+    required this.currentUserId,
+    required this.onReport,
+    required this.onEdit,
+    required this.onDelete,
+    required this.onReply,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -514,6 +867,41 @@ class _CommentTile extends StatelessWidget {
                         color: colorScheme.onSurface.withAlpha(120),
                       ),
                     ),
+                    if (comment.isEdited) ...[
+                      const SizedBox(width: 6),
+                      Text(
+                        'Redaktita',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withAlpha(120),
+                        ),
+                      ),
+                    ],
+                    const Spacer(),
+                    if (currentUserId != null &&
+                        currentUserId == comment.authorId)
+                      PopupMenuButton<String>(
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'edit':
+                              onEdit();
+                              break;
+                            case 'delete':
+                              onDelete();
+                              break;
+                          }
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Redakti'),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Forigi'),
+                          ),
+                        ],
+                      ),
                   ],
                 ),
                 const SizedBox(height: 4),
@@ -522,13 +910,20 @@ class _CommentTile extends StatelessWidget {
                   style: const TextStyle(fontSize: 14, height: 1.4),
                 ),
                 const SizedBox(height: 6),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: TextButton.icon(
-                    onPressed: onReport,
-                    icon: const Icon(Icons.flag_outlined, size: 16),
-                    label: const Text('Raporti'),
-                  ),
+                Row(
+                  children: [
+                    TextButton.icon(
+                      onPressed: onReply,
+                      icon: const Icon(Icons.reply, size: 16),
+                      label: const Text('Respondi'),
+                    ),
+                    const SizedBox(width: 4),
+                    TextButton.icon(
+                      onPressed: onReport,
+                      icon: const Icon(Icons.flag_outlined, size: 16),
+                      label: const Text('Raporti'),
+                    ),
+                  ],
                 ),
               ],
             ),

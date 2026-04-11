@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../app/routing/app_routes.dart';
+import '../../../core/presence/presence_providers.dart';
 import '../../../models/post.dart';
 import '../../../widgets/user_avatar.dart';
 import '../../auth/application/auth_providers.dart';
@@ -19,19 +20,21 @@ class PostCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final author = post.author;
     final colorScheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
     final args = PostInteractionArgs(
       postId: post.id,
       initialLikesCount: post.likesCount,
     );
     final interactionState = ref.watch(postInteractionControllerProvider(args));
     final isLoggedIn = ref.watch(authStateNotifierProvider).isAuthenticated;
+    final onlineIds = ref.watch(presenceControllerProvider);
+    final isOnline = author != null && onlineIds.contains(author.id);
 
     Future<void> handleToggleLike() async {
       if (!isLoggedIn) {
         context.go(AppRoutes.login);
         return;
       }
-
       final success = await ref
           .read(postInteractionControllerProvider(args).notifier)
           .toggleLike();
@@ -47,126 +50,169 @@ class PostCard extends ConsumerWidget {
 
     return InkWell(
       onTap: () => context.push('${AppRoutes.postDetailPrefix}/${post.id}'),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: colorScheme.outline, width: 0.5),
-          ),
-        ),
-        child: Column(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    if (author != null) {
-                      context.push(
-                        '${AppRoutes.profilePrefix}/${author.username}',
-                      );
-                    }
-                  },
-                  child: UserAvatar(
-                    avatarUrl: author?.avatarUrl,
-                    username: author?.username ?? '?',
-                    radius: 22,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+            // ── Left column: avatar ──────────────────────────────────────────
+            GestureDetector(
+              onTap: () {
+                if (author != null) {
+                  context.push(
+                    '${AppRoutes.profilePrefix}/${author.username}',
+                  );
+                }
+              },
+              child: _AvatarWithPresence(
+                avatarUrl: author?.avatarUrl,
+                username: author?.username ?? '?',
+                radius: 22,
+                isOnline: isOnline,
+              ),
+            ),
+            const SizedBox(width: 12),
+
+            // ── Right column: all content ────────────────────────────────────
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Header: name · @username · time
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              author?.name ?? 'Anonima',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 15,
-                              ),
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '@${author?.username ?? '?'}',
-                            style: TextStyle(
-                              color: colorScheme.onSurface.withAlpha(120),
-                              fontSize: 13,
+                      Flexible(
+                        child: GestureDetector(
+                          onTap: () {
+                            if (author != null) {
+                              context.push(
+                                '${AppRoutes.profilePrefix}/${author.username}',
+                              );
+                            }
+                          },
+                          child: Text(
+                            author?.name ?? 'Anonima',
+                            style: textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ],
+                        ),
                       ),
+                      if (author?.username != null) ...[
+                        const SizedBox(width: 5),
+                        Text(
+                          '@${author!.username}',
+                          style: textTheme.bodySmall?.copyWith(fontSize: 13),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                      const Spacer(),
                       Text(
                         timeago.format(post.createdAt, locale: 'es'),
-                        style: TextStyle(
-                          color: colorScheme.onSurface.withAlpha(120),
+                        style: textTheme.bodySmall?.copyWith(
                           fontSize: 12,
+                          color: colorScheme.onSurface.withAlpha(100),
                         ),
                       ),
                     ],
                   ),
-                ),
-                if (post.categoryName != null)
-                  Chip(
-                    label: Text(post.categoryName!),
-                    visualDensity: VisualDensity.compact,
-                    padding: EdgeInsets.zero,
+
+                  // Category tag (if any)
+                  if (post.categoryName != null) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      post.categoryName!,
+                      style: textTheme.labelSmall?.copyWith(
+                        color: AppThemeColors.primary(context),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+
+                  // Content
+                  const SizedBox(height: 6),
+                  Text(
+                    post.content,
+                    style: textTheme.bodyMedium?.copyWith(
+                      height: 1.4,
+                      color: colorScheme.onSurface,
+                    ),
                   ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              post.content,
-              style: const TextStyle(fontSize: 15, height: 1.4),
-            ),
-            if (post.imageUrls.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: CachedNetworkImage(
-                  imageUrl: post.imageUrls.first,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  maxHeightDiskCache: 600,
-                  placeholder: (_, _) => Container(
-                    height: 200,
-                    color: colorScheme.surfaceContainerHighest,
-                    child: const Center(child: CircularProgressIndicator()),
+
+                  // Image
+                  if (post.imageUrls.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: CachedNetworkImage(
+                        imageUrl: post.imageUrls.first,
+                        fit: BoxFit.cover,
+                        width: double.infinity,
+                        maxHeightDiskCache: 600,
+                        placeholder: (_, _) => Container(
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 1.5,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                          ),
+                        ),
+                        errorWidget: (_, _, _) => Container(
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: colorScheme.surfaceContainerHighest,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Center(
+                            child: Icon(
+                              Icons.broken_image_outlined,
+                              color: colorScheme.onSurface.withAlpha(60),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+
+                  // Action row
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      _ActionBtn(
+                        icon: interactionState.isLiked
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        count: interactionState.likesCount,
+                        activeColor: const Color(0xFFF43F5E),
+                        isActive: interactionState.isLiked,
+                        onTap: handleToggleLike,
+                        loading: interactionState.isLoading,
+                      ),
+                      const SizedBox(width: 20),
+                      _ActionBtn(
+                        icon: Icons.chat_bubble_outline_rounded,
+                        count: post.commentsCount,
+                        onTap: () => context.push(
+                          '${AppRoutes.postDetailPrefix}/${post.id}',
+                        ),
+                      ),
+                    ],
                   ),
-                  errorWidget: (_, _, _) => Container(
-                    height: 120,
-                    color: colorScheme.surfaceContainerHighest,
-                    child: const Icon(Icons.broken_image_outlined),
-                  ),
-                ),
+                ],
               ),
-            ],
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                _ActionButton(
-                  icon: interactionState.isLiked
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  count: interactionState.likesCount,
-                  color: interactionState.isLiked ? Colors.redAccent : null,
-                  onTap: handleToggleLike,
-                  loading: interactionState.isLoading,
-                ),
-                const SizedBox(width: 24),
-                _ActionButton(
-                  icon: Icons.chat_bubble_outline,
-                  count: post.commentsCount,
-                  onTap: () =>
-                      context.push('${AppRoutes.postDetailPrefix}/${post.id}'),
-                ),
-              ],
             ),
           ],
         ),
@@ -175,42 +221,109 @@ class PostCard extends ConsumerWidget {
   }
 }
 
-class _ActionButton extends StatelessWidget {
+// ── Action button ──────────────────────────────────────────────────────────────
+
+class _ActionBtn extends StatelessWidget {
   final IconData icon;
   final int count;
-  final Color? color;
+  final Color? activeColor;
+  final bool isActive;
   final VoidCallback onTap;
   final bool loading;
 
-  const _ActionButton({
+  const _ActionBtn({
     required this.icon,
     required this.count,
     required this.onTap,
-    this.color,
+    this.activeColor,
+    this.isActive = false,
     this.loading = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    final muted = Theme.of(context).colorScheme.onSurface.withAlpha(120);
+    final muted = Theme.of(context).colorScheme.onSurface.withAlpha(100);
+    final color = isActive ? (activeColor ?? muted) : muted;
+
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: Row(
         children: [
-          loading
-              ? SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 1.5,
-                    color: color ?? muted,
-                  ),
-                )
-              : Icon(icon, size: 20, color: color ?? muted),
-          const SizedBox(width: 4),
-          Text('$count', style: TextStyle(color: color ?? muted, fontSize: 13)),
+          if (loading)
+            SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: color,
+              ),
+            )
+          else
+            Icon(icon, size: 18, color: color),
+          if (count > 0) ...[
+            const SizedBox(width: 4),
+            Text(
+              '$count',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: color,
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
         ],
       ),
     );
   }
+}
+
+// ── Avatar with presence dot ───────────────────────────────────────────────────
+
+class _AvatarWithPresence extends StatelessWidget {
+  final String? avatarUrl;
+  final String username;
+  final double radius;
+  final bool isOnline;
+
+  const _AvatarWithPresence({
+    required this.avatarUrl,
+    required this.username,
+    required this.radius,
+    required this.isOnline,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        UserAvatar(avatarUrl: avatarUrl, username: username, radius: radius),
+        if (isOnline)
+          Positioned(
+            right: -1,
+            bottom: -1,
+            child: Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(
+                color: const Color(0xFF22C55E),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  width: 1.5,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+// ── Color helper ──────────────────────────────────────────────────────────────
+
+class AppThemeColors {
+  static Color primary(BuildContext context) =>
+      Theme.of(context).colorScheme.primary;
 }
