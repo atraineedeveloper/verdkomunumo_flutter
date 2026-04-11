@@ -13,10 +13,10 @@ class PostInteractionController extends StateNotifier<PostInteractionState> {
     required String postId,
     required String? userId,
     required int initialLikesCount,
-  })  : _repository = repository,
-        _postId = postId,
-        _userId = userId,
-        super(PostInteractionState.initial(initialLikesCount)) {
+  }) : _repository = repository,
+       _postId = postId,
+       _userId = userId,
+       super(PostInteractionState.initial(initialLikesCount)) {
     _loadLikedState();
   }
 

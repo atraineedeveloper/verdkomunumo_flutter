@@ -56,9 +56,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await ref
           .read(authActionControllerProvider.notifier)
-          .signInWithGoogle(
-            redirectUrl: AppConstants.supabaseAuthRedirectUrl,
-          );
+          .signInWithGoogle(redirectUrl: AppConstants.supabaseAuthRedirectUrl);
     } on AuthFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -198,8 +196,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           height: 20,
                           width: 20,
                           child: CupertinoActivityIndicator(
-                                color: Colors.black,
-                              ),
+                            color: Colors.black,
+                          ),
                         )
                       : const Text('Ensalutu'),
                 ),
@@ -300,9 +298,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ? Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Expanded(
-                            child: _buildBrandSide(context),
-                          ),
+                          Expanded(child: _buildBrandSide(context)),
                           const SizedBox(width: 48),
                           Expanded(
                             flex: 2,
@@ -379,10 +375,7 @@ class _OrDivider extends StatelessWidget {
         Expanded(child: Divider(color: color)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: Text(
-            'aŭ',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
+          child: Text('aŭ', style: Theme.of(context).textTheme.bodySmall),
         ),
         Expanded(child: Divider(color: color)),
       ],

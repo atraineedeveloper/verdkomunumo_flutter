@@ -11,7 +11,7 @@ class MessagesController extends StateNotifier<MessagesState> {
   final AnalyticsService _analytics;
 
   MessagesController(this._repository, this._analytics)
-      : super(MessagesState.initial());
+    : super(MessagesState.initial());
 
   Future<void> load() async {
     state = state.copyWith(isLoading: true, errorMessage: null);
@@ -53,10 +53,7 @@ class MessagesController extends StateNotifier<MessagesState> {
 
     try {
       final results = await _repository.searchUsers(trimmed);
-      state = state.copyWith(
-        isSearching: false,
-        searchResults: results,
-      );
+      state = state.copyWith(isSearching: false, searchResults: results);
     } catch (error) {
       state = state.copyWith(
         isSearching: false,

@@ -36,7 +36,8 @@ class Profile {
 
   factory Profile.fromJson(Map<String, dynamic> json) => Profile(
     id: (json['id'] ?? '').toString(),
-    username: (json['username'] ?? json['display_name'] ?? 'anonima').toString(),
+    username: (json['username'] ?? json['display_name'] ?? 'anonima')
+        .toString(),
     displayName: json['display_name'] as String?,
     bio: json['bio'] as String?,
     avatarUrl: json['avatar_url'] as String?,

@@ -46,7 +46,8 @@ class Post {
       content: (json['content'] ?? '').toString(),
       categoryId: json['category_id']?.toString(),
       categoryName: categoryJson?['name'] as String?,
-      imageUrls: (json['image_urls'] as List<dynamic>?)
+      imageUrls:
+          (json['image_urls'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           [],

@@ -40,36 +40,42 @@ void main() {
       expect(controller.preference, AppThemePreference.system);
     });
 
-    test('updatePreference() updates theme mode, notifies listeners, and saves to SharedPreferences', () async {
-      final controller = await AppThemeController.load();
-      var notifyCount = 0;
-      controller.addListener(() {
-        notifyCount++;
-      });
+    test(
+      'updatePreference() updates theme mode, notifies listeners, and saves to SharedPreferences',
+      () async {
+        final controller = await AppThemeController.load();
+        var notifyCount = 0;
+        controller.addListener(() {
+          notifyCount++;
+        });
 
-      await controller.updatePreference(AppThemePreference.dark);
+        await controller.updatePreference(AppThemePreference.dark);
 
-      expect(controller.themeMode, ThemeMode.dark);
-      expect(controller.preference, AppThemePreference.dark);
-      expect(notifyCount, 1);
+        expect(controller.themeMode, ThemeMode.dark);
+        expect(controller.preference, AppThemePreference.dark);
+        expect(notifyCount, 1);
 
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('theme_mode'), 'dark');
-    });
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('theme_mode'), 'dark');
+      },
+    );
 
-    test('updatePreference() does not notify listeners or update storage if preference is the same', () async {
-      SharedPreferences.setMockInitialValues({'theme_mode': 'dark'});
-      final controller = await AppThemeController.load();
-      var notifyCount = 0;
-      controller.addListener(() {
-        notifyCount++;
-      });
+    test(
+      'updatePreference() does not notify listeners or update storage if preference is the same',
+      () async {
+        SharedPreferences.setMockInitialValues({'theme_mode': 'dark'});
+        final controller = await AppThemeController.load();
+        var notifyCount = 0;
+        controller.addListener(() {
+          notifyCount++;
+        });
 
-      await controller.updatePreference(AppThemePreference.dark);
+        await controller.updatePreference(AppThemePreference.dark);
 
-      expect(controller.themeMode, ThemeMode.dark);
-      expect(controller.preference, AppThemePreference.dark);
-      expect(notifyCount, 0);
-    });
+        expect(controller.themeMode, ThemeMode.dark);
+        expect(controller.preference, AppThemePreference.dark);
+        expect(notifyCount, 0);
+      },
+    );
   });
 }
