@@ -60,9 +60,7 @@ class PostCard extends ConsumerWidget {
             GestureDetector(
               onTap: () {
                 if (author != null) {
-                  context.push(
-                    '${AppRoutes.profilePrefix}/${author.username}',
-                  );
+                  context.push('${AppRoutes.profilePrefix}/${author.username}');
                 }
               },
               child: _AvatarWithPresence(
@@ -254,9 +252,7 @@ class _ActionBtn extends StatelessWidget {
             SizedBox(
               width: 18,
               height: 18,
-              child: CupertinoActivityIndicator(
-                                color: color,
-                              ),
+              child: CupertinoActivityIndicator(color: color),
             )
           else
             Icon(icon, size: 18, color: color),

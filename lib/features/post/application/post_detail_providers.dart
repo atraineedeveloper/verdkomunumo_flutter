@@ -11,8 +11,10 @@ final postDetailRepositoryProvider = Provider<PostDetailRepository>((ref) {
   return SupabasePostDetailRepository(client);
 });
 
-final postDetailControllerProvider = StateNotifierProvider.family<
-    PostDetailController, PostDetailState, String>((ref, postId) {
-  final repository = ref.watch(postDetailRepositoryProvider);
-  return PostDetailController(repository, postId);
-});
+final postDetailControllerProvider =
+    StateNotifierProvider.family<PostDetailController, PostDetailState, String>(
+      (ref, postId) {
+        final repository = ref.watch(postDetailRepositoryProvider);
+        return PostDetailController(repository, postId);
+      },
+    );
