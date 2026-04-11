@@ -94,8 +94,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   padding: EdgeInsets.only(
                     bottom: MediaQuery.of(context).padding.bottom + 80,
                   ),
-                  itemCount:
-                      state.posts.length + (state.isLoadingMore ? 1 : 0),
+                  itemCount: state.posts.length + (state.isLoadingMore ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == state.posts.length) {
                       return Padding(
@@ -128,13 +127,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     FeedState state,
     bool isLoggedIn,
   ) {
-    FeedCategory? selectedCategory;
-    for (final cat in state.categories) {
-      if (cat.id == state.selectedCategoryId) {
-        selectedCategory = cat;
-        break;
-      }
-    }
+    final selectedCategory = state.categories
+        .where((cat) => cat.id == state.selectedCategoryId)
+        .firstOrNull;
 
     return SizedBox(
       width: 260,
@@ -147,18 +142,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               children: [
                 Text(
                   'Komunumo',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   state.filter == FeedFilter.following
                       ? 'Afiŝoj de sekvataj uzantoj.'
                       : 'La plej freŝaj afiŝoj de la komunumo.',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    height: 1.4,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(height: 1.4),
                 ),
                 if (selectedCategory != null) ...[
                   const SizedBox(height: 10),
@@ -167,7 +162,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     selected: true,
                     onTap: () => ref
                         .read(feedControllerProvider.notifier)
-                        .toggleCategory(selectedCategory!.id),
+                        .toggleCategory(selectedCategory.id),
                   ),
                 ],
                 const SizedBox(height: 12),
@@ -178,9 +173,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         ? () => _openCompose(state.categories)
                         : () => context.push(AppRoutes.login),
                     icon: Icon(
-                      isLoggedIn
-                          ? Icons.edit_rounded
-                          : Icons.login_rounded,
+                      isLoggedIn ? Icons.edit_rounded : Icons.login_rounded,
                       size: 16,
                     ),
                     label: Text(isLoggedIn ? 'Nova afiŝo' : 'Ensalutu'),
@@ -248,7 +241,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final useLandscapePanels = ResponsiveLayout.useLandscapePanels(context);
 
     final hasCategoryBar = state.categories.isNotEmpty && !useLandscapePanels;
-    final appBarBottomHeight = isLoggedIn ? (hasCategoryBar ? 96.0 : 52.0) : (hasCategoryBar ? 96.0 : 52.0);
+    final appBarBottomHeight = isLoggedIn
+        ? (hasCategoryBar ? 96.0 : 52.0)
+        : (hasCategoryBar ? 96.0 : 52.0);
 
     return Scaffold(
       appBar: AppBar(
@@ -305,7 +300,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
             children: [
               // ── Filter pill toggle ──────────────────────────────────────────
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: _PillFilterToggle(
                   showFollowing: isLoggedIn,
                   selected: state.filter,
@@ -357,9 +355,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         ref.read(feedControllerProvider.notifier).refresh(),
                     child: _buildFeedList(
                       state,
-                      () => ref
-                          .read(feedControllerProvider.notifier)
-                          .refresh(),
+                      () => ref.read(feedControllerProvider.notifier).refresh(),
                     ),
                   ),
                 ),
@@ -484,8 +480,7 @@ class _PillTab extends StatelessWidget {
                 color: selected
                     ? colorScheme.onSurface
                     : colorScheme.onSurface.withAlpha(130),
-                fontWeight:
-                    selected ? FontWeight.w600 : FontWeight.w500,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
                 fontSize: 13,
               ),
             ),
@@ -607,7 +602,8 @@ class _EmptyState extends StatelessWidget {
         ? Icons.people_outline_rounded
         : Icons.article_outlined;
 
-    final message = errorMessage ??
+    final message =
+        errorMessage ??
         (hasCategory
             ? 'Neniu afiŝo en tiu ĉi kategorio'
             : filter == FeedFilter.following
@@ -643,10 +639,7 @@ class _EmptyState extends StatelessWidget {
             ),
             if (errorMessage != null) ...[
               const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: onRetry,
-                child: const Text('Reprovi'),
-              ),
+              ElevatedButton(onPressed: onRetry, child: const Text('Reprovi')),
             ],
           ],
         ),
