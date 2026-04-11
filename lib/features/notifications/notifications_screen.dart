@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -36,7 +37,7 @@ class NotificationsScreen extends ConsumerWidget {
       body: userId == null
           ? _AuthPrompt(horizontalPadding: horizontalPadding)
           : state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CupertinoActivityIndicator())
           : state.notifications.isEmpty
           ? _EmptyNotifications(horizontalPadding: horizontalPadding)
           : RefreshIndicator(

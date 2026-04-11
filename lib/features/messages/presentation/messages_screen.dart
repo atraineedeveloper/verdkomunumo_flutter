@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -85,7 +86,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               if (state.isSearching)
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 16),
-                  child: CircularProgressIndicator(),
+                  child: CupertinoActivityIndicator(),
                 )
               else if (state.searchQuery.isNotEmpty &&
                   state.searchResults.isEmpty)
@@ -161,7 +162,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             : const Icon(Icons.add_comment),
       ),
       body: state.isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CupertinoActivityIndicator())
           : state.errorMessage != null
           ? Center(
               child: Padding(

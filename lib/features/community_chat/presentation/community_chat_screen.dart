@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -63,7 +64,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
         children: [
           Expanded(
             child: state.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CupertinoActivityIndicator())
                 : state.messages.isEmpty
                 ? const Center(
                     child: Text('Ankoraŭ neniu mesaĝo en la komunumo.'),
@@ -99,7 +100,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                   IconButton(
                     onPressed: state.isSending ? null : _sendMessage,
                     icon: state.isSending
-                        ? const CircularProgressIndicator()
+                        ? const CupertinoActivityIndicator()
                         : const Icon(Icons.send),
                   ),
                 ],

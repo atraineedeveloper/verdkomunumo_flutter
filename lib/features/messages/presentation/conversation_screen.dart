@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -108,7 +109,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
         children: [
           Expanded(
             child: state.isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CupertinoActivityIndicator())
                 : conversation == null
                     ? Center(
                         child: Text(
@@ -149,7 +150,7 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
                   IconButton(
                     onPressed: state.isSending ? null : _sendMessage,
                     icon: state.isSending
-                        ? const CircularProgressIndicator()
+                        ? const CupertinoActivityIndicator()
                         : const Icon(Icons.send),
                   ),
                 ],

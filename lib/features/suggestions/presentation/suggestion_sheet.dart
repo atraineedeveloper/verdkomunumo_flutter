@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -130,10 +131,9 @@ class _SuggestionSheetState extends ConsumerState<SuggestionSheet> {
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.black,
-                        ),
+                        child: CupertinoActivityIndicator(
+                                color: Colors.black,
+                              ),
                       )
                     : const Text('Sendi sugeston'),
               ),
