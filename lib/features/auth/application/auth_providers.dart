@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/supabase/supabase_providers.dart';
+import '../../../core/analytics/analytics_providers.dart';
 import '../data/supabase_auth_repository.dart';
 import '../domain/auth_repository.dart';
 import 'auth_action_controller.dart';
@@ -57,5 +58,6 @@ final authStateNotifierProvider = ChangeNotifierProvider<AuthStateNotifier>((
 final authActionControllerProvider =
     StateNotifierProvider<AuthActionController, AsyncValue<void>>((ref) {
       final repository = ref.watch(authRepositoryProvider);
-      return AuthActionController(repository);
+      final analytics = ref.watch(analyticsServiceProvider);
+      return AuthActionController(repository, analytics);
     });

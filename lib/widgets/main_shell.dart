@@ -14,9 +14,10 @@ class MainShell extends ConsumerWidget {
   int _loggedInLocationToIndex(String location) {
     if (location.startsWith(AppRoutes.feed)) return 0;
     if (location.startsWith(AppRoutes.search)) return 1;
-    if (location.startsWith(AppRoutes.notifications)) return 2;
-    if (location.startsWith(AppRoutes.profilePrefix)) return 3;
-    if (location.startsWith(AppRoutes.settings)) return 4;
+    if (location.startsWith(AppRoutes.messages)) return 2;
+    if (location.startsWith(AppRoutes.notifications)) return 3;
+    if (location.startsWith(AppRoutes.profilePrefix)) return 4;
+    if (location.startsWith(AppRoutes.settings)) return 5;
     return 0;
   }
 
@@ -91,13 +92,16 @@ class MainShell extends ConsumerWidget {
         context.go(AppRoutes.search);
         return;
       case 2:
-        context.go(isLoggedIn ? AppRoutes.notifications : AppRoutes.login);
+        context.go(isLoggedIn ? AppRoutes.messages : AppRoutes.login);
         return;
       case 3:
+        context.go(isLoggedIn ? AppRoutes.notifications : AppRoutes.login);
+        return;
+      case 4:
         await _openCurrentProfile(context, ref, currentUsernameAsync);
         if (!context.mounted) return;
         return;
-      case 4:
+      case 5:
         context.go(AppRoutes.settings);
         return;
     }
@@ -166,6 +170,11 @@ class MainShell extends ConsumerWidget {
                             label: Text('Serĉi'),
                           ),
                           NavigationRailDestination(
+                            icon: Icon(Icons.chat_bubble_outline),
+                            selectedIcon: Icon(Icons.chat_bubble),
+                            label: Text('Mesaĝoj'),
+                          ),
+                          NavigationRailDestination(
                             icon: Icon(Icons.notifications_outlined),
                             selectedIcon: Icon(Icons.notifications),
                             label: Text('Sciigoj'),
@@ -209,6 +218,7 @@ class MainShell extends ConsumerWidget {
             ),
       bottomNavigationBar: !useRailNavigation
           ? BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
               currentIndex: currentIndex,
               onTap: (index) => _onDestinationSelected(
                 context,
@@ -228,6 +238,11 @@ class MainShell extends ConsumerWidget {
                         icon: Icon(Icons.search),
                         activeIcon: Icon(Icons.search),
                         label: 'Serĉi',
+                      ),
+                      BottomNavigationBarItem(
+                        icon: Icon(Icons.chat_bubble_outline),
+                        activeIcon: Icon(Icons.chat_bubble),
+                        label: 'Mesaĝoj',
                       ),
                       BottomNavigationBarItem(
                         icon: Icon(Icons.notifications_outlined),

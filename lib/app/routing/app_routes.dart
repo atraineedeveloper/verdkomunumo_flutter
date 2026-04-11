@@ -5,6 +5,11 @@ abstract final class AppRoutes {
   static const String settings = '/agordoj';
   static const String login = '/ensaluti';
   static const String register = '/registrigxi';
+  static const String forgotPassword = '/forgesis-pasvorton';
+  static const String resetPassword = '/restarigi-pasvorton';
+  static const String messages = '/mesagxoj';
+  static const String communityChat = '/babilejo';
+  static const String conversationPrefix = '/mesagxoj';
   static const String postDetailPrefix = '/afisxo';
   static const String profilePrefix = '/profilo';
 }

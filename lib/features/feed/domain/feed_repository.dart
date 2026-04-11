@@ -25,5 +25,6 @@ abstract class FeedRepository {
   Future<void> createPost({
     required String content,
     required String? categoryId,
+    String? imagePath,
   });
 }

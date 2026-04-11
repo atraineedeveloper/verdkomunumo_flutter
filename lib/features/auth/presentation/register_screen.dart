@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routing/app_routes.dart';
+import '../../../core/constants.dart';
 import '../../../core/responsive.dart';
 import '../application/auth_providers.dart';
 import '../domain/auth_failure.dart';
@@ -52,6 +53,24 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
         ),
       );
       context.go(AppRoutes.feed);
+    } on AuthFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      await ref
+          .read(authActionControllerProvider.notifier)
+          .signInWithGoogle(
+            redirectUrl: AppConstants.supabaseAuthRedirectUrl,
+          );
     } on AuthFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -209,6 +228,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                       ),
                     )
                   : const Text('Kreu Konton'),
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton.icon(
+              onPressed: isLoading ? null : _signInWithGoogle,
+              icon: const Icon(Icons.g_mobiledata),
+              label: const Text('Daŭrigi per Google'),
             ),
           ),
           const SizedBox(height: 16),

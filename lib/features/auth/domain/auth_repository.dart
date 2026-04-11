@@ -15,5 +15,14 @@ abstract class AuthRepository {
     required String esperantoLevel,
   });
 
+  Future<void> signInWithGoogle({String? redirectUrl});
+
+  Future<void> sendPasswordReset({
+    required String email,
+    String? redirectUrl,
+  });
+
+  Future<void> updatePassword({required String newPassword});
+
   Future<void> signOut();
 }

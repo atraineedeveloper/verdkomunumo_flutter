@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/routing/app_routes.dart';
+import '../../../core/constants.dart';
 import '../../../core/responsive.dart';
 import '../../../widgets/esperanto_star.dart';
 import '../application/auth_providers.dart';
@@ -37,6 +38,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
           .signIn(
             email: _emailController.text.trim(),
             password: _passwordController.text,
+          );
+    } on AuthFailure catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.message),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    try {
+      await ref
+          .read(authActionControllerProvider.notifier)
+          .signInWithGoogle(
+            redirectUrl: AppConstants.supabaseAuthRedirectUrl,
           );
     } on AuthFailure catch (error) {
       if (!mounted) return;
@@ -154,7 +173,24 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       : const Text('Ensalutu'),
                 ),
               ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: isLoading ? null : _signInWithGoogle,
+                  icon: const Icon(Icons.g_mobiledata),
+                  label: const Text('Daŭrigi per Google'),
+                ),
+              ),
             ],
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextButton(
+          onPressed: () => context.go(AppRoutes.forgotPassword),
+          child: Text(
+            'Ĉu vi forgesis la pasvorton?',
+            style: TextStyle(color: colorScheme.onSurface.withAlpha(150)),
           ),
         ),
         const SizedBox(height: 24),

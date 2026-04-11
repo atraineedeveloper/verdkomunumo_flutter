@@ -19,6 +19,20 @@ void main() {
         ),
         AppRoutes.login,
       );
+      expect(
+        resolveAuthRedirect(
+          isAuthenticated: false,
+          matchedLocation: AppRoutes.messages,
+        ),
+        AppRoutes.login,
+      );
+      expect(
+        resolveAuthRedirect(
+          isAuthenticated: false,
+          matchedLocation: AppRoutes.communityChat,
+        ),
+        AppRoutes.login,
+      );
     });
 
     test('redirects authenticated users away from auth screens', () {
@@ -33,6 +47,13 @@ void main() {
         resolveAuthRedirect(
           isAuthenticated: true,
           matchedLocation: AppRoutes.register,
+        ),
+        AppRoutes.feed,
+      );
+      expect(
+        resolveAuthRedirect(
+          isAuthenticated: true,
+          matchedLocation: AppRoutes.forgotPassword,
         ),
         AppRoutes.feed,
       );

@@ -57,9 +57,16 @@ For local VS Code run and debug, this repository is configured to read credentia
 2. Set:
    `SUPABASE_URL=...`
    `SUPABASE_ANON_KEY=...`
+   `SUPABASE_AUTH_REDIRECT_URL=your-app-scheme://login-callback/`
 3. Run any launch profile from [.vscode/launch.json](/c:/Users/DELL/DevProjects/verdkomunumo_flutter/.vscode/launch.json)
 
 An example file is available at [.env.flutter.example](/c:/Users/DELL/DevProjects/verdkomunumo_flutter/.env.flutter.example).
+
+## Auth flows
+
+- Google sign-in and password reset use the Supabase Auth redirect URL.
+- For mobile, set `SUPABASE_AUTH_REDIRECT_URL` to your app scheme and configure
+  the same redirect URL in Supabase Auth settings.
 
 ## Validation
 

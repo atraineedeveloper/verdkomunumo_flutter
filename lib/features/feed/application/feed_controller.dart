@@ -92,8 +92,13 @@ class FeedController extends StateNotifier<FeedState> {
   Future<void> createPost({
     required String content,
     required String? categoryId,
+    String? imagePath,
   }) async {
-    await _repository.createPost(content: content, categoryId: categoryId);
+    await _repository.createPost(
+      content: content,
+      categoryId: categoryId,
+      imagePath: imagePath,
+    );
     await refresh();
   }
 

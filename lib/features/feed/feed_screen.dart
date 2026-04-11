@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../app/routing/app_routes.dart';
 import '../../core/responsive.dart';
 import '../../features/auth/application/auth_providers.dart';
+import '../../features/suggestions/presentation/suggestion_sheet.dart';
 import '../../widgets/esperanto_star.dart';
 import 'application/feed_providers.dart';
 import 'application/feed_state.dart';
@@ -63,10 +64,23 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 
+  Future<void> _openSuggestionSheet() async {
+    await showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const SuggestionSheet(),
+    );
+  }
+
   Widget _buildFeedList(
     FeedState state,
     double contentMaxWidth,
     double horizontalPadding,
+    VoidCallback onRetry,
   ) {
     return Center(
       child: ConstrainedBox(
@@ -77,6 +91,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
               ? _EmptyState(
                   filter: state.filter,
                   hasCategory: state.selectedCategoryId != null,
+                  errorMessage: state.errorMessage,
+                  onRetry: onRetry,
                 )
               : ListView.builder(
                   controller: _scrollController,
@@ -351,6 +367,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       state,
                       contentMaxWidth,
                       horizontalPadding,
+                      () => ref.read(feedControllerProvider.notifier).refresh(),
                     ),
                   ),
                 ),
@@ -360,12 +377,30 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           : RefreshIndicator(
               onRefresh: () =>
                   ref.read(feedControllerProvider.notifier).refresh(),
-              child: _buildFeedList(state, contentMaxWidth, horizontalPadding),
+              child: _buildFeedList(
+                state,
+                contentMaxWidth,
+                horizontalPadding,
+                () => ref.read(feedControllerProvider.notifier).refresh(),
+              ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _openCompose(state.categories),
-        tooltip: 'Nova afiŝo',
-        child: const Icon(Icons.edit_outlined),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.extended(
+            heroTag: 'suggestion-fab',
+            onPressed: _openSuggestionSheet,
+            icon: const Icon(Icons.lightbulb_outline),
+            label: const Text('Sugesto'),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'compose-fab',
+            onPressed: () => _openCompose(state.categories),
+            tooltip: 'Nova afiŝo',
+            child: const Icon(Icons.edit_outlined),
+          ),
+        ],
       ),
       floatingActionButtonLocation: ResponsiveLayout.isMobile(context)
           ? FloatingActionButtonLocation.endDocked
@@ -446,16 +481,24 @@ class _FilterTab extends StatelessWidget {
 class _EmptyState extends StatelessWidget {
   final FeedFilter filter;
   final bool hasCategory;
+  final String? errorMessage;
+  final VoidCallback onRetry;
 
-  const _EmptyState({required this.filter, required this.hasCategory});
+  const _EmptyState({
+    required this.filter,
+    required this.hasCategory,
+    this.errorMessage,
+    required this.onRetry,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final message = hasCategory
-        ? 'Neniu afiŝo en tiu ĉi kategorio'
-        : filter == FeedFilter.following
-        ? 'Sekvu uzantojn por vidi iliajn afiŝojn'
-        : 'Ankoraŭ ne estas afiŝoj';
+    final message = errorMessage ??
+        (hasCategory
+            ? 'Neniu afiŝo en tiu ĉi kategorio'
+            : filter == FeedFilter.following
+                ? 'Sekvu uzantojn por vidi iliajn afiŝojn'
+                : 'Ankoraŭ ne estas afiŝoj');
 
     return Center(
       child: Padding(
@@ -481,6 +524,13 @@ class _EmptyState extends StatelessWidget {
                 fontSize: 16,
               ),
             ),
+            if (errorMessage != null) ...[
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: onRetry,
+                child: const Text('Reprovi'),
+              ),
+            ],
           ],
         ),
       ),

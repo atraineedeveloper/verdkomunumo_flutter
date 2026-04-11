@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:math';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../../core/error/app_failure.dart';
@@ -95,6 +98,7 @@ class SupabaseFeedRepository implements FeedRepository {
   Future<void> createPost({
     required String content,
     required String? categoryId,
+    String? imagePath,
   }) async {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
@@ -104,10 +108,31 @@ class SupabaseFeedRepository implements FeedRepository {
     }
 
     try {
+      final imageUrls = <String>[];
+      if (imagePath != null && imagePath.isNotEmpty) {
+        final extension = _fileExtension(imagePath);
+        final objectPath = _buildImagePath(userId, extension);
+        final file = File(imagePath);
+
+        await _client.storage.from('post-images').upload(
+              objectPath,
+              file,
+              fileOptions: FileOptions(
+                upsert: false,
+                contentType: _contentTypeFor(extension),
+              ),
+            );
+
+        final publicUrl =
+            _client.storage.from('post-images').getPublicUrl(objectPath);
+        imageUrls.add(publicUrl);
+      }
+
       await _client.from('posts').insert({
         'user_id': userId,
         'content': content,
         'category_id': categoryId,
+        'image_urls': imageUrls,
       });
     } catch (error) {
       final failure = mapSupabaseFailure(
@@ -120,6 +145,33 @@ class SupabaseFeedRepository implements FeedRepository {
         cause: failure.cause,
       );
     }
+  }
+
+  String _fileExtension(String path) {
+    final segments = path.split('.');
+    if (segments.length < 2) return '';
+    return segments.last.toLowerCase();
+  }
+
+  String? _contentTypeFor(String extension) {
+    if (extension.isEmpty) return null;
+    switch (extension) {
+      case 'jpg':
+        return 'image/jpeg';
+      case 'jpeg':
+      case 'png':
+      case 'webp':
+        return 'image/$extension';
+      default:
+        return null;
+    }
+  }
+
+  String _buildImagePath(String userId, String extension) {
+    final stamp = DateTime.now().microsecondsSinceEpoch;
+    final randomSuffix = Random().nextInt(999999);
+    final ext = extension.isEmpty ? '' : '.$extension';
+    return '$userId/$stamp-$randomSuffix$ext';
   }
 
   Future<List<String>> _loadFollowingIds(FeedFilter filter) async {

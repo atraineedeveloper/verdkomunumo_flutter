@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 import 'app/app.dart';
 import 'core/constants.dart';
+import 'core/notifications/firebase_push_config.dart';
 import 'core/theme.dart';
 import 'core/theme_controller.dart';
 
@@ -19,6 +21,11 @@ void main() async {
   if (configError != null) {
     runApp(ConfigurationErrorApp(message: configError));
     return;
+  }
+
+  if (FirebasePushConfig.hasCurrentPlatformConfig &&
+      Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(options: FirebasePushConfig.currentPlatform);
   }
 
   await Supabase.initialize(

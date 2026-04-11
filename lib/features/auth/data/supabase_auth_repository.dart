@@ -80,6 +80,72 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> signInWithGoogle({String? redirectUrl}) async {
+    try {
+      await _client.auth.signInWithOAuth(
+        OAuthProvider.google,
+        redirectTo: (redirectUrl ?? '').trim().isEmpty ? null : redirectUrl,
+      );
+    } catch (error) {
+      final failure = mapSupabaseFailure(
+        error,
+        fallbackMessage: 'Unable to sign in with Google right now.',
+        defaultKind: AppFailureKind.auth,
+      );
+      throw AuthFailure(
+        failure.message,
+        kind: failure.kind,
+        cause: failure.cause,
+      );
+    }
+  }
+
+  @override
+  Future<void> sendPasswordReset({
+    required String email,
+    String? redirectUrl,
+  }) async {
+    try {
+      await _client.auth.resetPasswordForEmail(
+        email.trim(),
+        redirectTo: (redirectUrl ?? '').trim().isEmpty ? null : redirectUrl,
+      );
+    } catch (error) {
+      final failure = mapSupabaseFailure(
+        error,
+        fallbackMessage: 'Unable to send the reset email right now.',
+        defaultKind: AppFailureKind.auth,
+      );
+      throw AuthFailure(
+        failure.message,
+        kind: failure.kind,
+        cause: failure.cause,
+      );
+    }
+  }
+
+  @override
+  Future<void> updatePassword({required String newPassword}) async {
+    try {
+      await _client.auth.updateUser(
+        UserAttributes(password: newPassword),
+      );
+      await _client.auth.signOut();
+    } catch (error) {
+      final failure = mapSupabaseFailure(
+        error,
+        fallbackMessage: 'Unable to update the password right now.',
+        defaultKind: AppFailureKind.auth,
+      );
+      throw AuthFailure(
+        failure.message,
+        kind: failure.kind,
+        cause: failure.cause,
+      );
+    }
+  }
+
+  @override
   Future<void> signOut() async {
     try {
       await _client.auth.signOut();
