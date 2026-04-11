@@ -57,9 +57,7 @@ class NotificationsScreen extends ConsumerWidget {
                       itemCount: state.notifications.length,
                       itemBuilder: (_, index) {
                         final notification = state.notifications[index];
-                        return _NotificationTile(
-                          notification: notification,
-                        );
+                        return _NotificationTile(notification: notification);
                       },
                     ),
                   ),
@@ -117,9 +115,7 @@ class _NotificationTile extends StatelessWidget {
     return InkWell(
       onTap: () {
         if (notification.postId != null) {
-          context.push(
-            '${AppRoutes.postDetailPrefix}/${notification.postId}',
-          );
+          context.push('${AppRoutes.postDetailPrefix}/${notification.postId}');
         } else if (notification.actorUsername != null) {
           context.push(
             '${AppRoutes.profilePrefix}/${notification.actorUsername}',
@@ -189,8 +185,7 @@ class _NotificationTile extends StatelessWidget {
                     style: textTheme.bodyMedium?.copyWith(
                       fontSize: 14,
                       height: 1.35,
-                      fontWeight:
-                          isUnread ? FontWeight.w500 : FontWeight.w400,
+                      fontWeight: isUnread ? FontWeight.w500 : FontWeight.w400,
                     ),
                   ),
                   const SizedBox(height: 3),

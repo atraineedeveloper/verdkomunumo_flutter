@@ -114,7 +114,9 @@ class SupabaseFeedRepository implements FeedRepository {
         final objectPath = _buildImagePath(userId, extension);
         final file = File(imagePath);
 
-        await _client.storage.from('post-images').upload(
+        await _client.storage
+            .from('post-images')
+            .upload(
               objectPath,
               file,
               fileOptions: FileOptions(
@@ -123,8 +125,9 @@ class SupabaseFeedRepository implements FeedRepository {
               ),
             );
 
-        final publicUrl =
-            _client.storage.from('post-images').getPublicUrl(objectPath);
+        final publicUrl = _client.storage
+            .from('post-images')
+            .getPublicUrl(objectPath);
         imageUrls.add(publicUrl);
       }
 

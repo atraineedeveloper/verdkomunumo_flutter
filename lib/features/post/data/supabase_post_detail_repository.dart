@@ -86,11 +86,14 @@ class SupabasePostDetailRepository implements PostDetailRepository {
     required String content,
   }) async {
     try {
-      await _client.from('posts').update({
-        'content': content.trim(),
-        'is_edited': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', postId);
+      await _client
+          .from('posts')
+          .update({
+            'content': content.trim(),
+            'is_edited': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', postId);
     } catch (error) {
       final failure = mapSupabaseFailure(
         error,
@@ -107,10 +110,13 @@ class SupabasePostDetailRepository implements PostDetailRepository {
   @override
   Future<void> deletePost({required String postId}) async {
     try {
-      await _client.from('posts').update({
-        'is_deleted': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', postId);
+      await _client
+          .from('posts')
+          .update({
+            'is_deleted': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', postId);
     } catch (error) {
       final failure = mapSupabaseFailure(
         error,
@@ -130,11 +136,14 @@ class SupabasePostDetailRepository implements PostDetailRepository {
     required String content,
   }) async {
     try {
-      await _client.from('comments').update({
-        'content': content.trim(),
-        'is_edited': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', commentId);
+      await _client
+          .from('comments')
+          .update({
+            'content': content.trim(),
+            'is_edited': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', commentId);
     } catch (error) {
       final failure = mapSupabaseFailure(
         error,
@@ -151,10 +160,13 @@ class SupabasePostDetailRepository implements PostDetailRepository {
   @override
   Future<void> deleteComment({required String commentId}) async {
     try {
-      await _client.from('comments').update({
-        'is_deleted': true,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', commentId);
+      await _client
+          .from('comments')
+          .update({
+            'is_deleted': true,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', commentId);
     } catch (error) {
       final failure = mapSupabaseFailure(
         error,
