@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:verdkomunumo_flutter/core/analytics/analytics_service.dart';
 import 'package:verdkomunumo_flutter/features/messages/application/messages_controller.dart';
-import 'package:verdkomunumo_flutter/features/messages/application/messages_state.dart';
+
 import 'package:verdkomunumo_flutter/features/messages/domain/conversation.dart';
 import 'package:verdkomunumo_flutter/features/messages/domain/messages_repository.dart';
 import 'package:verdkomunumo_flutter/models/profile.dart';
