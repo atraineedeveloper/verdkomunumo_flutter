@@ -71,8 +71,8 @@ class ThemeControllerScope extends InheritedNotifier<AppThemeController> {
   }) : super(notifier: controller);
 
   static AppThemeController of(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<ThemeControllerScope>();
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<ThemeControllerScope>();
     assert(scope != null, 'ThemeControllerScope not found in context');
     return scope!.notifier!;
   }

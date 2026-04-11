@@ -128,9 +128,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CupertinoActivityIndicator(
-                                color: Colors.black,
-                              ),
+                      child: CupertinoActivityIndicator(color: Colors.black),
                     )
                   : const Text('Sendi ligilon'),
             ),
