@@ -29,9 +29,9 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
   void initState() {
     super.initState();
     Future.microtask(
-      () =>
-          ref.read(conversationControllerProvider(widget.conversationId).notifier)
-            ..load(),
+      () => ref.read(
+        conversationControllerProvider(widget.conversationId).notifier,
+      )..load(),
     );
   }
 
@@ -111,24 +111,22 @@ class _ConversationScreenState extends ConsumerState<ConversationScreen> {
             child: state.isLoading
                 ? const Center(child: CupertinoActivityIndicator())
                 : conversation == null
-                    ? Center(
-                        child: Text(
-                          state.errorMessage ?? 'Konversacio ne trovita',
-                        ),
-                      )
-                    : ListView.builder(
-                        controller: _scrollController,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 12,
-                        ),
-                        itemCount: conversation.messages.length,
-                        itemBuilder: (_, index) {
-                          final message = conversation.messages[index];
-                          final isOwn = message.senderId == currentUserId;
-                          return _MessageBubble(message: message, isOwn: isOwn);
-                        },
-                      ),
+                ? Center(
+                    child: Text(state.errorMessage ?? 'Konversacio ne trovita'),
+                  )
+                : ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    itemCount: conversation.messages.length,
+                    itemBuilder: (_, index) {
+                      final message = conversation.messages[index];
+                      final isOwn = message.senderId == currentUserId;
+                      return _MessageBubble(message: message, isOwn: isOwn);
+                    },
+                  ),
           ),
           SafeArea(
             top: false,
@@ -172,8 +170,9 @@ class _MessageBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final bubbleColor =
-        isOwn ? colorScheme.primary : colorScheme.surfaceContainerHighest;
+    final bubbleColor = isOwn
+        ? colorScheme.primary
+        : colorScheme.surfaceContainerHighest;
     final textColor = isOwn ? Colors.white : colorScheme.onSurface;
 
     return Align(
@@ -187,8 +186,9 @@ class _MessageBubble extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(
-          crossAxisAlignment:
-              isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+          crossAxisAlignment: isOwn
+              ? CrossAxisAlignment.end
+              : CrossAxisAlignment.start,
           children: [
             if (!isOwn && message.sender != null)
               Row(
@@ -207,17 +207,11 @@ class _MessageBubble extends StatelessWidget {
                 ],
               ),
             if (!isOwn && message.sender != null) const SizedBox(height: 6),
-            Text(
-              message.content,
-              style: TextStyle(color: textColor),
-            ),
+            Text(message.content, style: TextStyle(color: textColor)),
             const SizedBox(height: 4),
             Text(
               timeago.format(message.createdAt, locale: 'es'),
-              style: TextStyle(
-                color: textColor.withAlpha(170),
-                fontSize: 11,
-              ),
+              style: TextStyle(color: textColor.withAlpha(170), fontSize: 11),
             ),
           ],
         ),

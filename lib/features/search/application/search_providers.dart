@@ -13,6 +13,6 @@ final searchRepositoryProvider = Provider<SearchRepository>((ref) {
 
 final searchControllerProvider =
     StateNotifierProvider<SearchController, SearchState>((ref) {
-  final repository = ref.watch(searchRepositoryProvider);
-  return SearchController(repository);
-});
+      final repository = ref.watch(searchRepositoryProvider);
+      return SearchController(repository);
+    });

@@ -6,10 +6,7 @@ class FeedPage {
   final List<Post> posts;
   final bool hasMore;
 
-  const FeedPage({
-    required this.posts,
-    required this.hasMore,
-  });
+  const FeedPage({required this.posts, required this.hasMore});
 }
 
 abstract class FeedRepository {

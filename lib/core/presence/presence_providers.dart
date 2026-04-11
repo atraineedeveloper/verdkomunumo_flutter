@@ -6,7 +6,7 @@ import 'presence_controller.dart';
 
 final presenceControllerProvider =
     StateNotifierProvider.autoDispose<PresenceController, Set<String>>((ref) {
-  final client = ref.watch(supabaseClientProvider);
-  final currentUserId = ref.watch(currentUserIdProvider);
-  return PresenceController(client, currentUserId);
-});
+      final client = ref.watch(supabaseClientProvider);
+      final currentUserId = ref.watch(currentUserIdProvider);
+      return PresenceController(client, currentUserId);
+    });

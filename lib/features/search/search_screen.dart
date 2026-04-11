@@ -58,7 +58,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
   }
 
   @override
-  Widget build(BuildContext context, ) {
+  Widget build(BuildContext context) {
     final state = ref.watch(searchControllerProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -152,9 +152,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
                   maxWidth: ResponsiveLayout.contentMaxWidth,
                 ),
                 child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: horizontalPadding,
-                  ),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                   child: TabBarView(
                     controller: _tabController,
                     children: [
@@ -177,9 +175,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen>
                             )
                           : ListView.builder(
                               itemCount: state.users.length,
-                              itemBuilder: (_, index) => _UserTile(
-                                profile: state.users[index],
-                              ),
+                              itemBuilder: (_, index) =>
+                                  _UserTile(profile: state.users[index]),
                             ),
                     ],
                   ),
@@ -361,10 +358,7 @@ class _NoResults extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 4),
-            Text(
-              'por "$query"',
-              style: textTheme.bodySmall,
-            ),
+            Text('por "$query"', style: textTheme.bodySmall),
           ],
         ),
       ),

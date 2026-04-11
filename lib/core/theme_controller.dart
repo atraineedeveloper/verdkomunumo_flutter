@@ -6,9 +6,10 @@ enum AppThemePreference { system, light, dark }
 class AppThemeController extends ChangeNotifier {
   static const String _preferenceKey = 'theme_mode';
 
-  AppThemeController._(this._themeMode);
+  AppThemeController._(this._themeMode, this._prefs);
 
   ThemeMode _themeMode;
+  final SharedPreferences _prefs;
 
   ThemeMode get themeMode => _themeMode;
 
@@ -26,7 +27,7 @@ class AppThemeController extends ChangeNotifier {
   static Future<AppThemeController> load() async {
     final prefs = await SharedPreferences.getInstance();
     final storedValue = prefs.getString(_preferenceKey);
-    return AppThemeController._(_themeModeFromStorage(storedValue));
+    return AppThemeController._(_themeModeFromStorage(storedValue), prefs);
   }
 
   Future<void> updatePreference(AppThemePreference preference) async {
@@ -36,8 +37,7 @@ class AppThemeController extends ChangeNotifier {
     _themeMode = nextMode;
     notifyListeners();
 
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_preferenceKey, preference.name);
+    await _prefs.setString(_preferenceKey, preference.name);
   }
 
   static ThemeMode _themeModeFromStorage(String? value) {
@@ -71,8 +71,8 @@ class ThemeControllerScope extends InheritedNotifier<AppThemeController> {
   }) : super(notifier: controller);
 
   static AppThemeController of(BuildContext context) {
-    final scope =
-        context.dependOnInheritedWidgetOfExactType<ThemeControllerScope>();
+    final scope = context
+        .dependOnInheritedWidgetOfExactType<ThemeControllerScope>();
     assert(scope != null, 'ThemeControllerScope not found in context');
     return scope!.notifier!;
   }
