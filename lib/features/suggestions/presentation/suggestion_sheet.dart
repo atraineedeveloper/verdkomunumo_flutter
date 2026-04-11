@@ -87,9 +87,7 @@ class _SuggestionSheetState extends ConsumerState<SuggestionSheet> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _titleController,
-              decoration: const InputDecoration(
-                labelText: 'Mallonga titolo',
-              ),
+              decoration: const InputDecoration(labelText: 'Mallonga titolo'),
               maxLength: 80,
               validator: (value) {
                 if (value == null || value.trim().length < 4) {
@@ -131,9 +129,7 @@ class _SuggestionSheetState extends ConsumerState<SuggestionSheet> {
                     ? const SizedBox(
                         height: 18,
                         width: 18,
-                        child: CupertinoActivityIndicator(
-                                color: Colors.black,
-                              ),
+                        child: CupertinoActivityIndicator(color: Colors.black),
                       )
                     : const Text('Sendi sugeston'),
               ),

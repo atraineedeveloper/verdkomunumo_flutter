@@ -11,10 +11,7 @@ class AnalyticsService {
 
   bool get isEnabled => _analytics != null;
 
-  Future<void> logEvent(
-    String name, {
-    Map<String, Object>? parameters,
-  }) async {
+  Future<void> logEvent(String name, {Map<String, Object>? parameters}) async {
     if (_analytics == null) return;
     await _analytics!.logEvent(name: name, parameters: parameters);
   }
