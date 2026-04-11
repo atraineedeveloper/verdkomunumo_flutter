@@ -52,7 +52,6 @@ class SupabaseCommunityChatRepository implements CommunityChatRepository {
             table: 'community_messages',
             callback: (payload) async {
               final record = payload.newRecord;
-              if (record == null) return;
 
               final data = await _client
                   .from('community_messages')
