@@ -136,11 +136,7 @@ class _FakePostDetailRepository implements PostDetailRepository {
     String? parentId,
   }) async {
     createCommentCalls.add(
-      _CreateCommentCall(
-        postId: postId,
-        content: content,
-        parentId: parentId,
-      ),
+      _CreateCommentCall(postId: postId, content: content, parentId: parentId),
     );
 
     if (createCommentError != null) {

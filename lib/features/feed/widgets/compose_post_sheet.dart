@@ -82,7 +82,9 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
 
     setState(() => _loading = true);
     try {
-      await ref.read(feedControllerProvider.notifier).createPost(
+      await ref
+          .read(feedControllerProvider.notifier)
+          .createPost(
             content: content,
             categoryId: _selectedCategoryId,
             imagePath: _selectedImage?.path,
@@ -90,14 +92,16 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
       if (mounted) Navigator.of(context).pop();
     } on AppFailure catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.message)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message)));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-              failureMessageOf(e, fallback: 'Ne eblis krei la afiŝon.')),
+            failureMessageOf(e, fallback: 'Ne eblis krei la afiŝon.'),
+          ),
         ),
       );
     } finally {
@@ -124,8 +128,8 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
     final progressColor = isOverLimit
         ? Colors.redAccent
         : isNearLimit
-            ? Colors.orange
-            : AppTheme.primaryGreen;
+        ? Colors.orange
+        : AppTheme.primaryGreen;
 
     return Padding(
       padding: EdgeInsets.only(
@@ -148,7 +152,9 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
             child: Row(
               children: [
                 TextButton(
-                  onPressed: _loading ? null : () => Navigator.of(context).pop(),
+                  onPressed: _loading
+                      ? null
+                      : () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
                     foregroundColor: colorScheme.onSurface.withAlpha(160),
                     padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -191,8 +197,8 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
                             width: 16,
                             height: 16,
                             child: CupertinoActivityIndicator(
-                                color: Colors.black,
-                              ),
+                              color: Colors.black,
+                            ),
                           )
                         : const Text('Sendu'),
                   ),
@@ -313,8 +319,7 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
                   return Padding(
                     padding: const EdgeInsets.only(right: 6),
                     child: GestureDetector(
-                      onTap: () =>
-                          setState(() => _selectedCategoryId = cat.id),
+                      onTap: () => setState(() => _selectedCategoryId = cat.id),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         padding: const EdgeInsets.symmetric(
@@ -325,8 +330,8 @@ class _ComposePostSheetState extends ConsumerState<ComposePostSheet> {
                           color: selected
                               ? AppTheme.primaryGreen
                               : isDark
-                                  ? colorScheme.surfaceContainerHighest
-                                  : colorScheme.surfaceContainerHighest,
+                              ? colorScheme.surfaceContainerHighest
+                              : colorScheme.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: selected

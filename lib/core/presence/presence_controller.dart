@@ -16,10 +16,7 @@ class PresenceController extends StateNotifier<Set<String>> {
 
     _channel = _client.channel(
       'presence:online_users',
-      opts: RealtimeChannelConfig(
-        key: userId,
-        enabled: true,
-      ),
+      opts: RealtimeChannelConfig(key: userId, enabled: true),
     );
 
     _channel!

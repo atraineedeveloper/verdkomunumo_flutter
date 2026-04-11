@@ -11,8 +11,9 @@ final feedRepositoryProvider = Provider<FeedRepository>((ref) {
   return SupabaseFeedRepository(client);
 });
 
-final feedControllerProvider =
-    StateNotifierProvider<FeedController, FeedState>((ref) {
-  final repository = ref.watch(feedRepositoryProvider);
-  return FeedController(repository);
-});
+final feedControllerProvider = StateNotifierProvider<FeedController, FeedState>(
+  (ref) {
+    final repository = ref.watch(feedRepositoryProvider);
+    return FeedController(repository);
+  },
+);

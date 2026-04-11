@@ -10,7 +10,7 @@ class PostDetailController extends StateNotifier<PostDetailState> {
   final String _postId;
 
   PostDetailController(this._repository, this._postId)
-      : super(PostDetailState.initial()) {
+    : super(PostDetailState.initial()) {
     load();
   }
 
@@ -37,10 +37,7 @@ class PostDetailController extends StateNotifier<PostDetailState> {
     }
   }
 
-  Future<void> submitComment(
-    String content, {
-    String? parentId,
-  }) async {
+  Future<void> submitComment(String content, {String? parentId}) async {
     final normalizedContent = content.trim();
     if (normalizedContent.isEmpty) return;
 

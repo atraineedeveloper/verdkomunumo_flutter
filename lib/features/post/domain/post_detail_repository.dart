@@ -5,10 +5,7 @@ class PostDetailData {
   final Post post;
   final List<Comment> comments;
 
-  const PostDetailData({
-    required this.post,
-    required this.comments,
-  });
+  const PostDetailData({required this.post, required this.comments});
 }
 
 abstract class PostDetailRepository {
@@ -20,10 +17,7 @@ abstract class PostDetailRepository {
     String? parentId,
   });
 
-  Future<void> updatePost({
-    required String postId,
-    required String content,
-  });
+  Future<void> updatePost({required String postId, required String content});
 
   Future<void> deletePost({required String postId});
 

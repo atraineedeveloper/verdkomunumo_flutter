@@ -82,7 +82,9 @@ void main() {
     });
 
     test('toggleLike does nothing if already loading', () async {
-      final repository = _FakePostInteractionsRepository(delay: const Duration(milliseconds: 100));
+      final repository = _FakePostInteractionsRepository(
+        delay: const Duration(milliseconds: 100),
+      );
       final controller = PostInteractionController(
         repository: repository,
         postId: 'post-1',
@@ -102,63 +104,73 @@ void main() {
       expect(repository.likeCalls, 1); // Only called once
     });
 
-    test('toggleLike optimistically increments likes and calls likePost', () async {
-      final repository = _FakePostInteractionsRepository();
-      final controller = PostInteractionController(
-        repository: repository,
-        postId: 'post-1',
-        userId: 'user-1',
-        initialLikesCount: 5,
-      );
+    test(
+      'toggleLike optimistically increments likes and calls likePost',
+      () async {
+        final repository = _FakePostInteractionsRepository();
+        final controller = PostInteractionController(
+          repository: repository,
+          postId: 'post-1',
+          userId: 'user-1',
+          initialLikesCount: 5,
+        );
 
-      await Future<void>.delayed(Duration.zero); // Wait for initial load
+        await Future<void>.delayed(Duration.zero); // Wait for initial load
 
-      final future = controller.toggleLike();
+        final future = controller.toggleLike();
 
-      // Verify optimistic update
-      expect(controller.state.isLoading, isTrue);
-      expect(controller.state.isLiked, isTrue);
-      expect(controller.state.likesCount, 6);
+        // Verify optimistic update
+        expect(controller.state.isLoading, isTrue);
+        expect(controller.state.isLiked, isTrue);
+        expect(controller.state.likesCount, 6);
 
-      final result = await future;
+        final result = await future;
 
-      expect(result, isTrue);
-      expect(controller.state.isLoading, isFalse);
-      expect(controller.state.isLiked, isTrue);
-      expect(controller.state.likesCount, 6);
-      expect(repository.likeCalls, 1);
-    });
+        expect(result, isTrue);
+        expect(controller.state.isLoading, isFalse);
+        expect(controller.state.isLiked, isTrue);
+        expect(controller.state.likesCount, 6);
+        expect(repository.likeCalls, 1);
+      },
+    );
 
-    test('toggleLike optimistically decrements likes and calls unlikePost', () async {
-      final repository = _FakePostInteractionsRepository(initialIsLiked: true);
-      final controller = PostInteractionController(
-        repository: repository,
-        postId: 'post-1',
-        userId: 'user-1',
-        initialLikesCount: 5,
-      );
+    test(
+      'toggleLike optimistically decrements likes and calls unlikePost',
+      () async {
+        final repository = _FakePostInteractionsRepository(
+          initialIsLiked: true,
+        );
+        final controller = PostInteractionController(
+          repository: repository,
+          postId: 'post-1',
+          userId: 'user-1',
+          initialLikesCount: 5,
+        );
 
-      await Future<void>.delayed(Duration.zero); // Wait for initial load
-      expect(controller.state.isLiked, isTrue);
+        await Future<void>.delayed(Duration.zero); // Wait for initial load
+        expect(controller.state.isLiked, isTrue);
 
-      final future = controller.toggleLike();
+        final future = controller.toggleLike();
 
-      // Verify optimistic update
-      expect(controller.state.isLoading, isTrue);
-      expect(controller.state.isLiked, isFalse);
-      expect(controller.state.likesCount, 4);
+        // Verify optimistic update
+        expect(controller.state.isLoading, isTrue);
+        expect(controller.state.isLiked, isFalse);
+        expect(controller.state.likesCount, 4);
 
-      final result = await future;
+        final result = await future;
 
-      expect(result, isTrue);
-      expect(controller.state.isLoading, isFalse);
-      expect(controller.state.isLiked, isFalse);
-      expect(controller.state.likesCount, 4);
-      expect(repository.unlikeCalls, 1);
-    });
+        expect(result, isTrue);
+        expect(controller.state.isLoading, isFalse);
+        expect(controller.state.isLiked, isFalse);
+        expect(controller.state.likesCount, 4);
+        expect(repository.unlikeCalls, 1);
+      },
+    );
 
     test('toggleLike rolls back state if likePost fails', () async {
-      final repository = _FakePostInteractionsRepository(shouldThrowOnLike: true);
+      final repository = _FakePostInteractionsRepository(
+        shouldThrowOnLike: true,
+      );
       final controller = PostInteractionController(
         repository: repository,
         postId: 'post-1',
@@ -223,7 +235,10 @@ class _FakePostInteractionsRepository implements PostInteractionsRepository {
   });
 
   @override
-  Future<bool> isPostLiked({required String postId, required String userId}) async {
+  Future<bool> isPostLiked({
+    required String postId,
+    required String userId,
+  }) async {
     isPostLikedCalls++;
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (shouldThrowOnIsLiked) throw Exception('Failed to check like status');
@@ -231,14 +246,20 @@ class _FakePostInteractionsRepository implements PostInteractionsRepository {
   }
 
   @override
-  Future<void> likePost({required String postId, required String userId}) async {
+  Future<void> likePost({
+    required String postId,
+    required String userId,
+  }) async {
     likeCalls++;
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (shouldThrowOnLike) throw Exception('Failed to like post');
   }
 
   @override
-  Future<void> unlikePost({required String postId, required String userId}) async {
+  Future<void> unlikePost({
+    required String postId,
+    required String userId,
+  }) async {
     unlikeCalls++;
     if (delay > Duration.zero) await Future<void>.delayed(delay);
     if (shouldThrowOnUnlike) throw Exception('Failed to unlike post');

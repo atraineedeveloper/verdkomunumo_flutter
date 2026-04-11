@@ -10,10 +10,7 @@ class AuthActionController extends StateNotifier<AsyncValue<void>> {
   AuthActionController(this._repository, this._analytics)
     : super(const AsyncData(null));
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) {
+  Future<void> signIn({required String email, required String password}) {
     return _run(() async {
       await _repository.signIn(email: email, password: password);
       await _analytics.logLogin('password');
@@ -44,10 +41,7 @@ class AuthActionController extends StateNotifier<AsyncValue<void>> {
     });
   }
 
-  Future<void> sendPasswordReset({
-    required String email,
-    String? redirectUrl,
-  }) {
+  Future<void> sendPasswordReset({required String email, String? redirectUrl}) {
     return _run(() async {
       await _repository.sendPasswordReset(
         email: email,
