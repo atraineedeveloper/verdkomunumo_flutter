@@ -83,10 +83,7 @@ class _FakeSearchRepository implements SearchRepository {
   final bool shouldFail;
   final List<String> searchCalls = [];
 
-  _FakeSearchRepository({
-    this.results,
-    this.shouldFail = false,
-  });
+  _FakeSearchRepository({this.results, this.shouldFail = false});
 
   @override
   Future<SearchResults> search(String query) async {
