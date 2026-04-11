@@ -25,7 +25,7 @@ class PresenceController extends StateNotifier<Set<String>> {
       ..onPresenceLeave((_) => _syncPresence());
 
     await _channel!.subscribe();
-         _channel!.track({
+    _channel!.track({
       'user_id': userId,
       'online_at': DateTime.now().toIso8601String(),
     });

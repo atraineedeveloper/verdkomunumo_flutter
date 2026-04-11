@@ -53,7 +53,6 @@ class SupabaseCommunityChatRepository implements CommunityChatRepository {
             callback: (payload) async {
               final record = payload.newRecord;
 
-
               final data = await _client
                   .from('community_messages')
                   .select('*, author:profiles(*)')
