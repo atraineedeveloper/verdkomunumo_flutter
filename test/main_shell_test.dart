@@ -70,7 +70,7 @@ void main() {
     await tester.pumpWidget(buildShell(const Size(390, 844)));
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
   });
 
@@ -78,7 +78,7 @@ void main() {
     await tester.pumpWidget(buildShell(const Size(844, 390)));
     await tester.pumpAndSettle();
 
-    expect(find.byType(BottomNavigationBar), findsOneWidget);
+    expect(find.byType(NavigationBar), findsOneWidget);
     expect(find.byType(NavigationRail), findsNothing);
   });
 
@@ -87,7 +87,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(NavigationRail), findsOneWidget);
-    expect(find.byType(BottomNavigationBar), findsNothing);
+    expect(find.byType(NavigationBar), findsNothing);
   });
 
   testWidgets('guest navigation only exposes public destinations', (

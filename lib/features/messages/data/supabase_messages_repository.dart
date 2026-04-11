@@ -29,8 +29,9 @@ class SupabaseMessagesRepository implements MessagesRepository {
         return const [];
       }
 
-      final conversationIds =
-          memberships.map((row) => row['conversation_id'] as String).toList();
+      final conversationIds = memberships
+          .map((row) => row['conversation_id'] as String)
+          .toList();
 
       final conversations = await _client
           .from('conversations')
@@ -45,14 +46,15 @@ class SupabaseMessagesRepository implements MessagesRepository {
 
       final messagesRows = await _client
           .from('messages')
-          .select('id, conversation_id, sender_id, content, is_read, created_at')
+          .select(
+            'id, conversation_id, sender_id, content, is_read, created_at',
+          )
           .inFilter('conversation_id', conversationIds)
           .order('created_at', ascending: false);
 
       final lastReadMap = {
         for (final row in memberships)
-          row['conversation_id'] as String:
-              row['last_read_at']?.toString()
+          row['conversation_id'] as String: row['last_read_at']?.toString(),
       };
 
       final participantsByConversation = <String, List<Profile>>{};
@@ -221,8 +223,9 @@ class SupabaseMessagesRepository implements MessagesRepository {
           .eq('user_id', userId);
 
       if (existing.isNotEmpty) {
-        final myConversations =
-            existing.map((row) => row['conversation_id'] as String).toList();
+        final myConversations = existing
+            .map((row) => row['conversation_id'] as String)
+            .toList();
         final shared = await _client
             .from('conversation_participants')
             .select('conversation_id')

@@ -69,9 +69,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     try {
       await ref
           .read(authActionControllerProvider.notifier)
-          .signInWithGoogle(
-            redirectUrl: AppConstants.supabaseAuthRedirectUrl,
-          );
+          .signInWithGoogle(redirectUrl: AppConstants.supabaseAuthRedirectUrl);
     } on AuthFailure catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -223,9 +221,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   ? const SizedBox(
                       height: 20,
                       width: 20,
-                      child: CupertinoActivityIndicator(
-                                color: Colors.black,
-                              ),
+                      child: CupertinoActivityIndicator(color: Colors.black),
                     )
                   : const Text('Kreu Konton'),
             ),

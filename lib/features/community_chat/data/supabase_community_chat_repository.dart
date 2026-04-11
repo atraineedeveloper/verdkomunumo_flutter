@@ -21,8 +21,9 @@ class SupabaseCommunityChatRepository implements CommunityChatRepository {
           .order('created_at', ascending: false)
           .limit(limit);
 
-      final messages =
-          data.map((row) => CommunityMessage.fromJson(row)).toList();
+      final messages = data
+          .map((row) => CommunityMessage.fromJson(row))
+          .toList();
       return messages.reversed.toList(growable: false);
     } catch (error) {
       final failure = mapSupabaseFailure(
@@ -51,7 +52,6 @@ class SupabaseCommunityChatRepository implements CommunityChatRepository {
             table: 'community_messages',
             callback: (payload) async {
               final record = payload.newRecord;
-              if (record == null) return;
 
               final data = await _client
                   .from('community_messages')

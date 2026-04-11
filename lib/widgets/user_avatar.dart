@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-
 class UserAvatar extends StatelessWidget {
   final String? avatarUrl;
   final String username;
@@ -42,8 +41,7 @@ class UserAvatar extends StatelessWidget {
     }
 
     final color = _avatarColor();
-    final letter =
-        username.isNotEmpty ? username[0].toUpperCase() : '?';
+    final letter = username.isNotEmpty ? username[0].toUpperCase() : '?';
 
     return Container(
       width: radius * 2,
@@ -53,10 +51,7 @@ class UserAvatar extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            color,
-            Color.lerp(color, Colors.black, 0.25)!,
-          ],
+          colors: [color, Color.lerp(color, Colors.black, 0.25)!],
         ),
       ),
       child: Center(

@@ -22,8 +22,7 @@ class ProfileScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(profileControllerProvider(username));
-    final controller =
-        ref.read(profileControllerProvider(username).notifier);
+    final controller = ref.read(profileControllerProvider(username).notifier);
     final colorScheme = Theme.of(context).colorScheme;
     final currentUserId = ref.watch(currentUserIdProvider);
     final onlineIds = ref.watch(presenceControllerProvider);
@@ -125,9 +124,7 @@ class ProfileScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               '${state.posts.length} afiŝoj',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelMedium,
+                              style: Theme.of(context).textTheme.labelMedium,
                             ),
                           ),
                         ),
@@ -162,12 +159,9 @@ class ProfileScreen extends ConsumerWidget {
                             const SizedBox(height: 16),
                             Text(
                               'Ankoraŭ ne estas afiŝoj',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withAlpha(140),
+                                    color: colorScheme.onSurface.withAlpha(140),
                                   ),
                             ),
                           ],
@@ -304,10 +298,7 @@ class _ProfileHeader extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
                   children: [
-                    _StatColumn(
-                      count: profile.postsCount,
-                      label: 'Afiŝoj',
-                    ),
+                    _StatColumn(count: profile.postsCount, label: 'Afiŝoj'),
                     _StatColumn(
                       count: profile.followersCount,
                       label: 'Sekvantoj',
@@ -345,16 +336,11 @@ class _ProfileHeader extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 8,
-                  vertical: 3,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: _levelColor(context).withAlpha(20),
                   borderRadius: BorderRadius.circular(6),
-                  border: Border.all(
-                    color: _levelColor(context).withAlpha(60),
-                  ),
+                  border: Border.all(color: _levelColor(context).withAlpha(60)),
                 ),
                 child: Text(
                   _levelLabel,
