@@ -275,8 +275,8 @@ class SupabaseMessagesRepository implements MessagesRepository {
           .limit(8);
 
       return data
+          .where((row) => row['id'] != userId)
           .map(Profile.fromJson)
-          .where((profile) => profile.id != userId)
           .toList(growable: false);
     } catch (error) {
       final failure = mapSupabaseFailure(
