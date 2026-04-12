@@ -7,14 +7,16 @@ import '../domain/notifications_repository.dart';
 import 'notifications_controller.dart';
 import 'notifications_state.dart';
 
-final notificationsRepositoryProvider = Provider<NotificationsRepository>((ref) {
+final notificationsRepositoryProvider = Provider<NotificationsRepository>((
+  ref,
+) {
   final client = ref.watch(supabaseClientProvider);
   return SupabaseNotificationsRepository(client);
 });
 
 final notificationsControllerProvider =
     StateNotifierProvider<NotificationsController, NotificationsState>((ref) {
-  final repository = ref.watch(notificationsRepositoryProvider);
-  final userId = ref.watch(currentUserIdProvider);
-  return NotificationsController(repository, userId);
-});
+      final repository = ref.watch(notificationsRepositoryProvider);
+      final userId = ref.watch(currentUserIdProvider);
+      return NotificationsController(repository, userId);
+    });

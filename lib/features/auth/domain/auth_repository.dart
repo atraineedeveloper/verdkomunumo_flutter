@@ -3,10 +3,7 @@ abstract class AuthRepository {
 
   Stream<bool> authStateChanges();
 
-  Future<void> signIn({
-    required String email,
-    required String password,
-  });
+  Future<void> signIn({required String email, required String password});
 
   Future<void> signUp({
     required String email,
@@ -17,10 +14,7 @@ abstract class AuthRepository {
 
   Future<void> signInWithGoogle({String? redirectUrl});
 
-  Future<void> sendPasswordReset({
-    required String email,
-    String? redirectUrl,
-  });
+  Future<void> sendPasswordReset({required String email, String? redirectUrl});
 
   Future<void> updatePassword({required String newPassword});
 

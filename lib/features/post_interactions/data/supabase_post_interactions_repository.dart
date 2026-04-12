@@ -26,10 +26,7 @@ class SupabasePostInteractionsRepository implements PostInteractionsRepository {
     required String postId,
     required String userId,
   }) async {
-    await _client.from('likes').insert({
-      'user_id': userId,
-      'post_id': postId,
-    });
+    await _client.from('likes').insert({'user_id': userId, 'post_id': postId});
   }
 
   @override

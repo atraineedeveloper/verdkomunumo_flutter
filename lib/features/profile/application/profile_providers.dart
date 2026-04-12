@@ -11,8 +11,11 @@ final profileRepositoryProvider = Provider<ProfileRepository>((ref) {
   return SupabaseProfileRepository(client);
 });
 
-final profileControllerProvider = StateNotifierProvider.family<
-    ProfileController, ProfileState, String>((ref, username) {
-  final repository = ref.watch(profileRepositoryProvider);
-  return ProfileController(repository, username);
-});
+final profileControllerProvider =
+    StateNotifierProvider.family<ProfileController, ProfileState, String>((
+      ref,
+      username,
+    ) {
+      final repository = ref.watch(profileRepositoryProvider);
+      return ProfileController(repository, username);
+    });

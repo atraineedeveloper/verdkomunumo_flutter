@@ -9,13 +9,13 @@ class AppTheme {
   static const Color lightGreen = Color(0xFFBBF7D0);
 
   // ── Dark mode — iOS true-black system colors ─────────────────────────────
-  static const Color background = Color(0xFF000000);      // OLED black
-  static const Color surface = Color(0xFF1C1C1E);         // iOS secondary bg
-  static const Color surfaceVariant = Color(0xFF2C2C2E);  // iOS tertiary bg
+  static const Color background = Color(0xFF000000); // OLED black
+  static const Color surface = Color(0xFF1C1C1E); // iOS secondary bg
+  static const Color surfaceVariant = Color(0xFF2C2C2E); // iOS tertiary bg
   static const Color surfaceElevated = Color(0xFF3A3A3C); // iOS fills
   static const Color onSurface = Color(0xFFFFFFFF);
-  static const Color onSurfaceMuted = Color(0xFF8E8E93);  // iOS secondary label
-  static const Color border = Color(0xFF38383A);          // iOS separator dark
+  static const Color onSurfaceMuted = Color(0xFF8E8E93); // iOS secondary label
+  static const Color border = Color(0xFF38383A); // iOS separator dark
   static const Color darkPrimaryContainer = Color(0xFF0D3320);
 
   // ── Light mode — iOS grouped background system ──────────────────────────
@@ -25,7 +25,7 @@ class AppTheme {
   static const Color lightSurfaceRaised = Color(0xFFFFFFFF);
   static const Color lightOnSurface = Color(0xFF000000);
   static const Color lightOnSurfaceMuted = Color(0xFF8E8E93);
-  static const Color lightBorder = Color(0xFFC6C6C8);     // iOS separator light
+  static const Color lightBorder = Color(0xFFC6C6C8); // iOS separator light
   static const Color lightPrimaryTint = Color(0xFFDCF5E7);
   static const Color lightShadow = Color(0x14000000);
 
@@ -80,21 +80,22 @@ class AppTheme {
     final base = ThemeData(
       useMaterial3: true,
       brightness: brightness,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: primaryGreen,
-        brightness: brightness,
-      ).copyWith(
-        primary: primaryGreen,
-        onPrimary: Colors.black,
-        secondary: darkGreen,
-        surface: surfaceColor,
-        onSurface: onSurfaceColor,
-        primaryContainer: effectivePrimaryContainer,
-        surfaceContainerHighest: surfaceVariantColor,
-        outline: outlineColor,
-        shadow: effectiveShadowColor,
-        surfaceContainer: surfaceElevatedColor,
-      ),
+      colorScheme:
+          ColorScheme.fromSeed(
+            seedColor: primaryGreen,
+            brightness: brightness,
+          ).copyWith(
+            primary: primaryGreen,
+            onPrimary: Colors.black,
+            secondary: darkGreen,
+            surface: surfaceColor,
+            onSurface: onSurfaceColor,
+            primaryContainer: effectivePrimaryContainer,
+            surfaceContainerHighest: surfaceVariantColor,
+            outline: outlineColor,
+            shadow: effectiveShadowColor,
+            surfaceContainer: surfaceElevatedColor,
+          ),
       scaffoldBackgroundColor: scaffoldBackground,
       canvasColor: scaffoldBackground,
       splashFactory: InkSparkle.splashFactory,
@@ -126,9 +127,7 @@ class AppTheme {
         shadowColor: Colors.transparent,
         elevation: 0,
         height: 60,
-        indicatorColor: isDark
-            ? primaryGreen.withAlpha(28)
-            : lightPrimaryTint,
+        indicatorColor: isDark ? primaryGreen.withAlpha(28) : lightPrimaryTint,
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -163,8 +162,7 @@ class AppTheme {
         backgroundColor: effectiveRaisedSurface,
         selectedIconTheme: const IconThemeData(color: primaryGreen),
         unselectedIconTheme: IconThemeData(color: onSurfaceMutedColor),
-        indicatorColor:
-            isDark ? primaryGreen.withAlpha(28) : lightPrimaryTint,
+        indicatorColor: isDark ? primaryGreen.withAlpha(28) : lightPrimaryTint,
         indicatorShape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
@@ -237,16 +235,15 @@ class AppTheme {
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
         ),
-        labelStyle: GoogleFonts.inter(
-          color: onSurfaceMutedColor,
-          fontSize: 15,
-        ),
+        labelStyle: GoogleFonts.inter(color: onSurfaceMutedColor, fontSize: 15),
         hintStyle: GoogleFonts.inter(
           color: onSurfaceMutedColor.withAlpha(160),
           fontSize: 15,
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
       ),
 
       // ── Segmented Button ───────────────────────────────────────────────────────
@@ -317,22 +314,20 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryGreen,
-          textStyle:
-              GoogleFonts.inter(fontWeight: FontWeight.w500, fontSize: 15),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding:
-              const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          textStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w500,
+            fontSize: 15,
+          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
         ),
       ),
 
       // ── ListTile ───────────────────────────────────────────────────────────────
       listTileTheme: ListTileThemeData(
         iconColor: isDark ? onSurfaceColor : darkGreen,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         tileColor: Colors.transparent,
       ),
 
@@ -343,10 +338,14 @@ class AppTheme {
         indicatorColor: primaryGreen,
         indicatorSize: TabBarIndicatorSize.label,
         dividerColor: outlineColor.withAlpha(80),
-        labelStyle:
-            GoogleFonts.inter(fontWeight: FontWeight.w600, fontSize: 14),
-        unselectedLabelStyle:
-            GoogleFonts.inter(fontWeight: FontWeight.w400, fontSize: 14),
+        labelStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w600,
+          fontSize: 14,
+        ),
+        unselectedLabelStyle: GoogleFonts.inter(
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+        ),
       ),
 
       // ── Divider ────────────────────────────────────────────────────────────────
@@ -361,20 +360,17 @@ class AppTheme {
         backgroundColor: primaryGreen,
         foregroundColor: Colors.black,
         elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
 
       // ── SnackBar ───────────────────────────────────────────────────────────────
       snackBarTheme: SnackBarThemeData(
-        backgroundColor:
-            isDark ? const Color(0xFF1C1C1E) : const Color(0xFF1A2E20),
-        contentTextStyle:
-            GoogleFonts.inter(color: Colors.white, fontSize: 14),
+        backgroundColor: isDark
+            ? const Color(0xFF1C1C1E)
+            : const Color(0xFF1A2E20),
+        contentTextStyle: GoogleFonts.inter(color: Colors.white, fontSize: 14),
         behavior: SnackBarBehavior.floating,
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         elevation: 4,
       ),
 
@@ -388,8 +384,7 @@ class AppTheme {
         ),
         side: BorderSide.none,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding:
-            const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       ),
 
       // ── Switch ─────────────────────────────────────────────────────────────────

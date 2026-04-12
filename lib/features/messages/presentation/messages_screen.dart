@@ -170,10 +170,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      state.errorMessage!,
-                      textAlign: TextAlign.center,
-                    ),
+                    Text(state.errorMessage!, textAlign: TextAlign.center),
                     const SizedBox(height: 12),
                     ElevatedButton(
                       onPressed: () =>
@@ -205,8 +202,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   conversation.participants,
                   currentUserId,
                 );
-                final isOnline =
-                    other != null && onlineIds.contains(other.id);
+                final isOnline = other != null && onlineIds.contains(other.id);
                 return _ConversationTile(
                   conversation: conversation,
                   other: other,
@@ -340,11 +336,7 @@ class _AvatarWithPresence extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        UserAvatar(
-          avatarUrl: avatarUrl,
-          username: username,
-          radius: radius,
-        ),
+        UserAvatar(avatarUrl: avatarUrl, username: username, radius: radius),
         if (isOnline)
           Positioned(
             right: -2,

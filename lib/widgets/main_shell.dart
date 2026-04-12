@@ -34,7 +34,9 @@ class MainShell extends ConsumerWidget {
     if (location.startsWith(AppRoutes.feed)) return 0;
     if (location.startsWith(AppRoutes.search)) return 1;
     if (location.startsWith(AppRoutes.login) ||
-        location.startsWith(AppRoutes.register)) { return 2; }
+        location.startsWith(AppRoutes.register)) {
+      return 2;
+    }
     return 0;
   }
 
@@ -78,18 +80,32 @@ class MainShell extends ConsumerWidget {
 
     if (!isLoggedIn) {
       switch (index) {
-        case 0: context.go(AppRoutes.feed); return;
-        case 1: context.go(AppRoutes.search); return;
-        case 2: context.go(AppRoutes.login); return;
+        case 0:
+          context.go(AppRoutes.feed);
+          return;
+        case 1:
+          context.go(AppRoutes.search);
+          return;
+        case 2:
+          context.go(AppRoutes.login);
+          return;
       }
       return;
     }
 
     switch (index) {
-      case 0: context.go(AppRoutes.feed); return;
-      case 1: context.go(AppRoutes.search); return;
-      case 2: context.go(AppRoutes.messages); return;
-      case 3: context.go(AppRoutes.notifications); return;
+      case 0:
+        context.go(AppRoutes.feed);
+        return;
+      case 1:
+        context.go(AppRoutes.search);
+        return;
+      case 2:
+        context.go(AppRoutes.messages);
+        return;
+      case 3:
+        context.go(AppRoutes.notifications);
+        return;
       case 4:
         await _openCurrentProfile(context, ref, currentUsernameAsync);
         if (!context.mounted) return;
@@ -112,10 +128,13 @@ class MainShell extends ConsumerWidget {
     // ── Badges ────────────────────────────────────────────────────────────────
     final notificationsState = ref.watch(notificationsControllerProvider);
     final messagesState = ref.watch(messagesControllerProvider);
-    final unreadNotifications =
-        notificationsState.notifications.where((n) => !n.isRead).length;
-    final unreadMessages = messagesState.conversations
-        .fold<int>(0, (sum, c) => sum + c.unreadCount);
+    final unreadNotifications = notificationsState.notifications
+        .where((n) => !n.isRead)
+        .length;
+    final unreadMessages = messagesState.conversations.fold<int>(
+      0,
+      (sum, c) => sum + c.unreadCount,
+    );
 
     // ── Profile avatar ────────────────────────────────────────────────────────
     final settingsState = ref.watch(settingsControllerProvider);
@@ -200,7 +219,11 @@ class MainShell extends ConsumerWidget {
                 NavigationRail(
                   selectedIndex: currentIndex,
                   onDestinationSelected: (i) => _onDestinationSelected(
-                    context, ref, i, isLoggedIn, currentUsernameAsync,
+                    context,
+                    ref,
+                    i,
+                    isLoggedIn,
+                    currentUsernameAsync,
                   ),
                   labelType: NavigationRailLabelType.all,
                   useIndicator: true,
@@ -237,8 +260,9 @@ class MainShell extends ConsumerWidget {
                           NavigationRailDestination(
                             icon: _BadgeIcon(
                               count: unreadMessages,
-                              child:
-                                  const Icon(Icons.chat_bubble_outline_rounded),
+                              child: const Icon(
+                                Icons.chat_bubble_outline_rounded,
+                              ),
                             ),
                             selectedIcon: _BadgeIcon(
                               count: unreadMessages,
@@ -311,10 +335,15 @@ class MainShell extends ConsumerWidget {
                     ? const Color(0xFF1C1C1E).withAlpha(210)
                     : Colors.white.withAlpha(220),
                 onDestinationSelected: (i) => _onDestinationSelected(
-                  context, ref, i, isLoggedIn, currentUsernameAsync,
+                  context,
+                  ref,
+                  i,
+                  isLoggedIn,
+                  currentUsernameAsync,
                 ),
-                destinations:
-                    isLoggedIn ? loggedInDestinations : guestDestinations,
+                destinations: isLoggedIn
+                    ? loggedInDestinations
+                    : guestDestinations,
               ),
             )
           : null,
@@ -378,10 +407,7 @@ class _BadgeIcon extends StatelessWidget {
         ),
       ),
       backgroundColor: const Color(0xFFF43F5E),
-      padding: EdgeInsets.symmetric(
-        horizontal: count > 9 ? 4 : 5,
-        vertical: 1,
-      ),
+      padding: EdgeInsets.symmetric(horizontal: count > 9 ? 4 : 5, vertical: 1),
       child: child,
     );
   }
@@ -423,11 +449,8 @@ class _ProfileNavIcon extends StatelessWidget {
         child: CachedNetworkImage(
           imageUrl: avatarUrl!,
           fit: BoxFit.cover,
-          placeholder: (_, _) => Icon(
-            Icons.person_outline_rounded,
-            size: 20,
-            color: primary,
-          ),
+          placeholder: (_, _) =>
+              Icon(Icons.person_outline_rounded, size: 20, color: primary),
           errorWidget: (_, _, _) => Icon(
             selected ? Icons.person_rounded : Icons.person_outline_rounded,
           ),
