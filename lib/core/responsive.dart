@@ -70,7 +70,8 @@ class ResponsiveContent extends StatelessWidget {
       child: ConstrainedBox(
         constraints: BoxConstraints(maxWidth: maxWidth),
         child: Padding(
-          padding: padding ??
+          padding:
+              padding ??
               EdgeInsets.symmetric(
                 horizontal: ResponsiveLayout.horizontalPadding(context),
               ),

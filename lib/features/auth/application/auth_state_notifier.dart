@@ -9,7 +9,7 @@ class AuthStateNotifier extends ChangeNotifier {
   late final StreamSubscription<bool> _subscription;
 
   AuthStateNotifier(this._repository)
-      : _isAuthenticated = _repository.isAuthenticated {
+    : _isAuthenticated = _repository.isAuthenticated {
     _subscription = _repository.authStateChanges().listen((isAuthenticated) {
       if (_isAuthenticated == isAuthenticated) return;
       _isAuthenticated = isAuthenticated;

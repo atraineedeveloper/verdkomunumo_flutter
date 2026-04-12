@@ -49,10 +49,7 @@ class ConversationController extends StateNotifier<ConversationState> {
     state = state.copyWith(isSending: true, errorMessage: null);
     final optimistic = _buildOptimisticMessage(trimmed);
     if (optimistic != null && state.conversation != null) {
-      final messages = [
-        ...state.conversation!.messages,
-        optimistic,
-      ];
+      final messages = [...state.conversation!.messages, optimistic];
       state = state.copyWith(
         conversation: ConversationThread(
           id: state.conversation!.id,

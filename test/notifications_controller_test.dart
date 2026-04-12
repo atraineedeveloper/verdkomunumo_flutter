@@ -73,9 +73,7 @@ void main() {
     });
 
     test('markAllAsRead failure sets error message', () async {
-      final notifications = [
-        createNotification(id: '1', isRead: false),
-      ];
+      final notifications = [createNotification(id: '1', isRead: false)];
       repository.notifications = notifications;
       repository.shouldThrowMarkRead = true;
 
@@ -84,13 +82,16 @@ void main() {
 
       await controller.markAllAsRead();
 
-      expect(controller.state.errorMessage, 'Ne eblis marki la sciigojn kiel legitajn.');
+      expect(
+        controller.state.errorMessage,
+        'Ne eblis marki la sciigojn kiel legitajn.',
+      );
     });
 
-    testWidgets('load automatically triggers markAllAsRead if unread exists', (tester) async {
-      final notifications = [
-        createNotification(id: '1', isRead: false),
-      ];
+    testWidgets('load automatically triggers markAllAsRead if unread exists', (
+      tester,
+    ) async {
+      final notifications = [createNotification(id: '1', isRead: false)];
       repository.notifications = notifications;
 
       final controller = NotificationsController(repository, userId);
@@ -128,10 +129,7 @@ class FakeNotificationsRepository implements NotificationsRepository {
   }
 }
 
-AppNotification createNotification({
-  required String id,
-  bool isRead = false,
-}) {
+AppNotification createNotification({required String id, bool isRead = false}) {
   return AppNotification(
     id: id,
     userId: 'user-1',
