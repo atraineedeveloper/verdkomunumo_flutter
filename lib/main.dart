@@ -23,8 +23,7 @@ void main() async {
     return;
   }
 
-  if (FirebasePushConfig.hasCurrentPlatformConfig &&
-      Firebase.apps.isEmpty) {
+  if (FirebasePushConfig.hasCurrentPlatformConfig && Firebase.apps.isEmpty) {
     await Firebase.initializeApp(options: FirebasePushConfig.currentPlatform);
   }
 
@@ -38,9 +37,7 @@ void main() async {
   final themeController = await AppThemeController.load();
 
   runApp(
-    ProviderScope(
-      child: VerdkomunumoApp(themeController: themeController),
-    ),
+    ProviderScope(child: VerdkomunumoApp(themeController: themeController)),
   );
 }
 
@@ -64,7 +61,11 @@ class ConfigurationErrorApp extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                const Icon(
+                  Icons.error_outline,
+                  color: Colors.redAccent,
+                  size: 48,
+                ),
                 const SizedBox(height: 16),
                 Text(
                   'Supabase configuration is missing',
@@ -72,10 +73,7 @@ class ConfigurationErrorApp extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 12),
-                Text(
-                  message,
-                  textAlign: TextAlign.center,
-                ),
+                Text(message, textAlign: TextAlign.center),
                 const SizedBox(height: 12),
                 const Text(
                   'Start the app with --dart-define=SUPABASE_URL=... '

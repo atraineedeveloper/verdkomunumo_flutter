@@ -27,21 +27,25 @@ class PostInteractionArgs {
   int get hashCode => Object.hash(postId, initialLikesCount);
 }
 
-final postInteractionsRepositoryProvider =
-    Provider<PostInteractionsRepository>((ref) {
-  final client = ref.watch(supabaseClientProvider);
-  return SupabasePostInteractionsRepository(client);
-});
+final postInteractionsRepositoryProvider = Provider<PostInteractionsRepository>(
+  (ref) {
+    final client = ref.watch(supabaseClientProvider);
+    return SupabasePostInteractionsRepository(client);
+  },
+);
 
 final postInteractionControllerProvider = StateNotifierProvider.family
-    .autoDispose<PostInteractionController, PostInteractionState,
-        PostInteractionArgs>((ref, args) {
-  final repository = ref.watch(postInteractionsRepositoryProvider);
-  final userId = ref.watch(currentUserIdProvider);
-  return PostInteractionController(
-    repository: repository,
-    postId: args.postId,
-    userId: userId,
-    initialLikesCount: args.initialLikesCount,
-  );
-});
+    .autoDispose<
+      PostInteractionController,
+      PostInteractionState,
+      PostInteractionArgs
+    >((ref, args) {
+      final repository = ref.watch(postInteractionsRepositoryProvider);
+      final userId = ref.watch(currentUserIdProvider);
+      return PostInteractionController(
+        repository: repository,
+        postId: args.postId,
+        userId: userId,
+        initialLikesCount: args.initialLikesCount,
+      );
+    });

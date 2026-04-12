@@ -3,9 +3,5 @@ class FeedCategory {
   final String name;
   final String? iconKey;
 
-  const FeedCategory({
-    required this.id,
-    required this.name,
-    this.iconKey,
-  });
+  const FeedCategory({required this.id, required this.name, this.iconKey});
 }

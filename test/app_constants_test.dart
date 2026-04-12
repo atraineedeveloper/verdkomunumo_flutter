@@ -12,10 +12,7 @@ void main() {
 
     test('returns error for invalid URL', () {
       expect(
-        AppConstants.validateSupabaseConfig(
-          url: 'not-a-url',
-          anonKey: 'token',
-        ),
+        AppConstants.validateSupabaseConfig(url: 'not-a-url', anonKey: 'token'),
         'SUPABASE_URL is invalid.',
       );
     });

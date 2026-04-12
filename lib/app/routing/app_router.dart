@@ -28,7 +28,8 @@ String? resolveAuthRedirect({
   required bool isAuthenticated,
   required String matchedLocation,
 }) {
-  final isAuthScreen = matchedLocation == AppRoutes.login ||
+  final isAuthScreen =
+      matchedLocation == AppRoutes.login ||
       matchedLocation == AppRoutes.register ||
       matchedLocation == AppRoutes.forgotPassword;
   final protectedRoutes = <String>[
@@ -57,9 +58,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 
   if (analyticsService.analytics != null) {
     observers.add(
-      FirebaseAnalyticsObserver(
-        analytics: analyticsService.analytics!,
-      ),
+      FirebaseAnalyticsObserver(analytics: analyticsService.analytics!),
     );
   }
 
@@ -77,10 +76,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         navigatorKey: _shellNavigatorKey,
         builder: (context, state, child) => MainShell(child: child),
         routes: [
-          GoRoute(
-            path: AppRoutes.feed,
-            builder: (_, _) => const FeedScreen(),
-          ),
+          GoRoute(path: AppRoutes.feed, builder: (_, _) => const FeedScreen()),
           GoRoute(
             path: AppRoutes.search,
             builder: (_, _) => const SearchScreen(),

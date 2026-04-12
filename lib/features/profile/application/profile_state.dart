@@ -40,8 +40,9 @@ class ProfileState {
     return ProfileState(
       isLoading: isLoading ?? this.isLoading,
       isFollowLoading: isFollowLoading ?? this.isFollowLoading,
-      profile:
-          identical(profile, _sentinel) ? this.profile : profile as Profile?,
+      profile: identical(profile, _sentinel)
+          ? this.profile
+          : profile as Profile?,
       posts: posts ?? this.posts,
       isFollowing: isFollowing ?? this.isFollowing,
       errorMessage: identical(errorMessage, _sentinel)
